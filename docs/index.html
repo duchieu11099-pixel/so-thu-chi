@@ -85,7 +85,9 @@ header.top { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; j
 .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap }
 .monthnav { display: flex; align-items: center; gap: 6px }
 .monthnav strong { min-width: 9.5em; text-align: center; font-weight: 600 }
-.syncline { display: flex; align-items: center; gap: 8px; font-size: .8rem; color: var(--muted); flex-wrap: wrap }
+.syncline { display: flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--muted); flex-wrap: wrap }
+.syncline #syncBtn { padding: 1px 5px; font-size: .85rem; line-height: 1; min-height: unset; opacity: .7 }
+.syncline #syncBtn:hover { opacity: 1 }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none }
 .dot.on { background: var(--good) }
 
@@ -119,7 +121,9 @@ header.top { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; j
 .meterrow { display: grid; gap: 6px }
 .meterrow .legend { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; font-size: .82rem; color: var(--muted) }
 .alerts { display: grid; gap: 8px }
-.alert { display: flex; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 8px; font-size: .9rem }
+.alert { display: flex; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 8px; font-size: .9rem; flex-wrap: wrap }
+.alert > span:nth-child(2) { flex: 1 1 60% }
+.alert button { flex: none; margin-left: auto; background: var(--surface); border-color: var(--line) }
 .alert .chip { flex: none; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 2px 7px; border-radius: 99px; margin-top: 2px }
 .alert.bad { background: var(--bad-soft) } .alert.bad .chip { background: var(--bad); color: var(--surface) }
 .alert.warn { background: var(--warn-soft) } .alert.warn .chip { background: var(--warn); color: var(--surface) }
@@ -203,6 +207,19 @@ form.goalform { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(0,1
 .quick { display: flex; flex-wrap: wrap; gap: 6px }
 .quick button { font-size: .82rem; padding: 6px 10px; border-radius: 99px }
 form.ask { display: flex; gap: 8px }
+
+/* Thu nhập hàng tháng */
+form.incomeform { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 8px; align-items: end }
+form.incomeform .fxname { grid-column: 1 / -1 }
+form.incomeform .curpick button { min-width: 3.2em; font-family: var(--f-num) }
+form.incomeform .fx-extra { grid-column: 1 / -1; flex-direction: row; display: flex; gap: 6px; align-items: center; font-size: .82rem; color: var(--ink) }
+form.incomeform .fx-extra input { width: auto }
+form.incomeform .fx-add { grid-column: 1 / -1 }
+.incbadge { font-size: .66rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 99px; padding: 1px 7px; vertical-align: 1px }
+.incbadge.auto { color: var(--good); background: var(--accent-soft) }
+.incbadge.remind { color: var(--warn); background: var(--warn-soft) }
+.fxday { font-size: .72rem; color: var(--muted) }
+@media (max-width: 560px) { form.incomeform { grid-template-columns: minmax(0,1fr) auto } }
 
 /* Chi phí cố định */
 form.fixedform { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto minmax(0,1fr) auto; gap: 8px; align-items: center }
@@ -375,7 +392,7 @@ tr.clickable:hover td { background: var(--sunken) }
     <div>
       <div class="label">Sổ tài chính gia đình · ¥ &amp; ₫</div>
       <h1>Sổ Thu Chi</h1>
-      <div class="syncline"><span class="dot" id="syncDot"></span><span id="syncText">Đang kết nối…</span></div>
+      <div class="syncline"><span class="dot" id="syncDot"></span><span id="syncText">Đang kết nối…</span><button class="ghost small" id="syncBtn" type="button" title="Tải lại dữ liệu mới nhất">↺</button></div>
       <div class="userchip" id="userChip" hidden><img id="userPhoto" alt=""><span id="userName"></span><button class="ghost small" id="logoutBtn" type="button">Đăng xuất</button></div>
     </div>
     <div class="toolbar">
@@ -508,6 +525,30 @@ tr.clickable:hover td { background: var(--sunken) }
       </div>
 
       <div class="col">
+        <section class="card">
+          <div class="cardhead"><h2>Thu nhập hàng tháng</h2><span class="hint" id="incomeHint"></span></div>
+          <div class="fixedlist" id="incomeList"></div>
+          <details id="incomeDetails">
+            <summary>Thêm khoản thu hàng tháng</summary>
+            <form class="incomeform" id="incomeForm" autocomplete="off">
+              <input id="iName" class="fxname" placeholder="Tên (vd: Lương cơ bản, Trợ cấp con, PanChan)" required aria-label="Tên khoản thu">
+              <input id="iAmt" inputmode="decimal" placeholder="Số tiền/tháng" required aria-label="Số tiền mỗi tháng">
+              <div class="seg curpick" role="group" aria-label="Loại tiền" id="incomeCurSeg">
+                <button type="button" data-cur="JPY" aria-pressed="true">¥</button>
+                <button type="button" data-cur="VND" aria-pressed="false">₫</button>
+              </div>
+              <label class="f" for="iDay">Ngày nhận<input id="iDay" type="number" min="1" max="31" inputmode="numeric" placeholder="vd: 25"></label>
+              <label class="f" for="iMode">Cách tính<select id="iMode">
+                <option value="auto">Tự cộng vào thu nhập mỗi tháng</option>
+                <option value="remind">Chỉ nhắc, để tôi tự thêm</option>
+              </select></label>
+              <label class="f fx-extra" for="iExtra"><input type="checkbox" id="iExtra"> Nhắc hỏi thêm tăng ca/thưởng vào ngày nhận</label>
+              <button class="primary fx-add" type="submit">Thêm</button>
+            </form>
+          </details>
+          <div class="hint">Khoản “tự cộng” được tính sẵn vào thu nhập mỗi tháng, khỏi nhập lại (vd: lương cơ bản, trợ cấp con). Khoản “chỉ nhắc” không tự cộng; đến ngày nhận app sẽ nhắc để bạn tự thêm số tiền thực nhận (vd: lương PanChan hay thay đổi).</div>
+        </section>
+
         <section class="card">
           <div class="cardhead"><h2>Tài khoản ngân hàng</h2><span class="hint" id="rateHint"></span></div>
           <div class="totals">
@@ -841,7 +882,7 @@ tr.clickable:hover td { background: var(--sunken) }
 
   // ---------- Trạng thái ----------
   // M: dữ liệu thật của gia đình (đồng bộ). D: dữ liệu mẫu khi chưa thiết lập.
-  const M = { settings: null, accounts: {}, goals: {}, deposits: {}, gifts: {}, debts: {}, fixed: {}, tx: {}, rates: null };
+  const M = { settings: null, accounts: {}, goals: {}, deposits: {}, gifts: {}, debts: {}, fixed: {}, incomes: {}, tx: {}, rates: null };
   let D = null;
   const state = { loaded: false, view: "JPY", y: today.getFullYear(), m: today.getMonth() + 1, kind: "out", cur: "JPY", accTouched: false, chat: [], me: null, rateC: "vn" };
   const isDemo = () => !M.settings;
@@ -876,6 +917,11 @@ tr.clickable:hover td { background: var(--sunken) }
         { id: "n1", dir: "lend", name: "Anh Tuấn", amount: 5000000, cur: "VND", date: ymd(addMonths(ymd(today), -3)), due: ymd(addMonths(ymd(today), 1)), note: "Mượn sửa nhà",
           pays: [{ id: "p1", amount: 2000000, date: ymd(addMonths(ymd(today), -1)), note: "Trả lần 1, chuyển khoản" }] },
         { id: "n2", dir: "borrow", name: "Chị Hà", amount: 100000, cur: "JPY", date: ymd(addMonths(ymd(today), -1)), note: "Mượn tiền cọc nhà", pays: [] }
+      ]),
+      incomes: arr([
+        { id: "i1", name: "Lương cơ bản", amount: 310000, cur: "JPY", day: 25, mode: "auto", extra: true, start: past6 },
+        { id: "i2", name: "Trợ cấp con", amount: 15000, cur: "JPY", day: 15, mode: "auto", start: past6 },
+        { id: "i3", name: "Lương PanChan", amount: 60000, cur: "JPY", day: 15, mode: "remind", start: past6 }
       ]),
       fixed: arr([
         { id: "f1", name: "Tiền nhà", amount: 68000, cur: "JPY", cat: "Nhà ở & hóa đơn", start: past6 },
@@ -926,7 +972,7 @@ tr.clickable:hover td { background: var(--sunken) }
           setSync(!s.metadata.fromCache, s.metadata.fromCache ? "Đang ngoại tuyến · sẽ đồng bộ khi có mạng" : null);
           changed();
         }, onErr);
-        ["accounts", "goals", "deposits", "gifts", "debts", "fixed"].forEach(k => F.onSnapshot(col(k), q => { M[k] = toMap(q); changed(); }, onErr));
+        ["accounts", "goals", "deposits", "gifts", "debts", "fixed", "incomes"].forEach(k => F.onSnapshot(col(k), q => { M[k] = toMap(q); changed(); }, onErr));
         F.onSnapshot(F.doc(db, "ref", "rates"), s => { M.rates = s.exists() ? s.data() : null; renderRates(); if (!s.metadata.fromCache) syncRatesFile(); }, onErr);
         this.watchMonth();
       },
@@ -941,7 +987,7 @@ tr.clickable:hover td { background: var(--sunken) }
       setRates(o) { M.rates = o; return F.setDoc(F.doc(db, "ref", "rates"), clone(o)).catch(saveErr); },
       async allTx() { const q = await F.getDocs(col("tx")); return q.docs.map(d => ({ ...d.data(), id: d.id })); },
       async clearAll() {
-        for (const k of ["accounts", "goals", "deposits", "gifts", "debts", "fixed", "tx"]) {
+        for (const k of ["accounts", "goals", "deposits", "gifts", "debts", "fixed", "incomes", "tx"]) {
           const q = await F.getDocs(col(k));
           for (const d of q.docs) await F.deleteDoc(d.ref);
         }
@@ -949,10 +995,10 @@ tr.clickable:hover td { background: var(--sunken) }
     };
   }
   function localRepo() {
-    let blob = { settings: null, accounts: {}, goals: {}, deposits: {}, gifts: {}, debts: {}, fixed: {}, tx: {}, rates: null };
+    let blob = { settings: null, accounts: {}, goals: {}, deposits: {}, gifts: {}, debts: {}, fixed: {}, incomes: {}, tx: {}, rates: null };
     try { const v = localStorage.getItem(LKEY); if (v) blob = { ...blob, ...JSON.parse(v) }; } catch {}
     const persist = () => { try { localStorage.setItem(LKEY, JSON.stringify(blob)); } catch {} };
-    const sync = () => { M.settings = blob.settings; M.accounts = blob.accounts; M.goals = blob.goals; M.deposits = blob.deposits; M.gifts = blob.gifts || {}; M.debts = blob.debts || {}; M.fixed = blob.fixed || {}; M.rates = blob.rates;
+    const sync = () => { M.settings = blob.settings; M.accounts = blob.accounts; M.goals = blob.goals; M.deposits = blob.deposits; M.gifts = blob.gifts || {}; M.debts = blob.debts || {}; M.fixed = blob.fixed || {}; M.incomes = blob.incomes || {}; M.rates = blob.rates;
       const mo = mkey(state.y, state.m); M.tx = Object.fromEntries(Object.entries(blob.tx).filter(([, t]) => t.month === mo)); };
     return {
       mode: "local",
@@ -963,7 +1009,7 @@ tr.clickable:hover td { background: var(--sunken) }
       setSettings(o) { blob.settings = o; persist(); sync(); },
       setRates(o) { blob.rates = o; persist(); sync(); },
       async allTx() { return Object.values(blob.tx); },
-      async clearAll() { blob.accounts = {}; blob.goals = {}; blob.deposits = {}; blob.gifts = {}; blob.debts = {}; blob.fixed = {}; blob.tx = {}; persist(); sync(); }
+      async clearAll() { blob.accounts = {}; blob.goals = {}; blob.deposits = {}; blob.gifts = {}; blob.debts = {}; blob.fixed = {}; blob.incomes = {}; blob.tx = {}; persist(); sync(); }
     };
   }
   function saveErr(e) { console.error(e); toast(e?.code === "permission-denied" ? "Tài khoản này chưa được cấp quyền ghi vào sổ. Xem HUONG-DAN.md, mục “Thêm người dùng”." : "Không lưu được: " + (e?.message || e?.code || "lỗi")); }
@@ -999,7 +1045,7 @@ tr.clickable:hover td { background: var(--sunken) }
   async function exportJson() {
     if (isDemo()) return demoToast();
     const data = { app: "so-thu-chi", version: 1, exportedAt: new Date().toISOString(), settings: M.settings,
-      accounts: Object.values(M.accounts), goals: Object.values(M.goals), deposits: Object.values(M.deposits), gifts: Object.values(M.gifts), debts: Object.values(M.debts), fixed: Object.values(M.fixed),
+      accounts: Object.values(M.accounts), goals: Object.values(M.goals), deposits: Object.values(M.deposits), gifts: Object.values(M.gifts), debts: Object.values(M.debts), fixed: Object.values(M.fixed), incomes: Object.values(M.incomes),
       tx: await repo.allTx(), rates: M.rates };
     download(`so-thu-chi-sao-luu-${ymd(today)}.json`, JSON.stringify(data, null, 2), "application/json");
     toast("Đã tải bản sao lưu. Hãy cất tệp này ở nơi an toàn.");
@@ -1029,7 +1075,7 @@ tr.clickable:hover td { background: var(--sunken) }
     $("importBtn").disabled = true; toast("Đang khôi phục, đừng đóng trang…");
     try {
       await repo.clearAll();
-      for (const k of ["accounts", "goals", "deposits", "gifts", "debts", "fixed"]) for (const o of (data[k] || [])) await repo.put(k, o);
+      for (const k of ["accounts", "goals", "deposits", "gifts", "debts", "fixed", "incomes"]) for (const o of (data[k] || [])) await repo.put(k, o);
       for (const t of data.tx) await repo.put("tx", { ...t, month: t.month || t.date.slice(0, 7) });
       if (data.rates) await repo.setRates(data.rates);
       await repo.setSettings(data.settings);
@@ -1093,8 +1139,11 @@ tr.clickable:hover td { background: var(--sunken) }
     const fixedItems = list("fixed").filter(f => (f.start || "") <= mo);
     const fixedTotal = fixedItems.reduce((a, f) => a + conv(f.amount, f.cur, V), 0);
     const spent = spentVar + fixedTotal;
+    const incItems = list("incomes").filter(i => (i.start || "") <= mo);
+    const autoInc = incItems.filter(i => i.mode === "auto").reduce((a, i) => a + conv(i.amount, i.cur, V), 0);
+    const hasAuto = incItems.some(i => i.mode === "auto");
     const pIncome = conv(st.income || 0, st.cur, V);
-    const income = Math.max(pIncome, gotIn);
+    const income = hasAuto ? autoInc + gotIn : Math.max(pIncome, gotIn);
     const left = income - spent - saved;
     const limit = st.limit ? conv(st.limit, st.cur, V) : income;
     const catLimit = cat => st.catLimits?.[cat] ? conv(st.catLimits[cat], st.cur, V) : 0;
@@ -1115,7 +1164,7 @@ tr.clickable:hover td { background: var(--sunken) }
     list("accounts").forEach(a => tot[a.cur] += a.balance || 0);
     list("deposits").forEach(d => { dep[d.cur] += depValue(d).value; if (isCash(d)) cash[d.cur] += d.amount; else depPrin[d.cur] += d.amount; });
     const assets = conv(tot.JPY + dep.JPY, "JPY", V) + conv(tot.VND + dep.VND, "VND", V);
-    return { spent, spentVar, fixedTotal, fixedItems, gotIn, saved, income, left, limit, catLimit, byCat, isCur, dim, dayFrac, goals, totalPerMonth, tot, dep, depPrin, cash, assets };
+    return { spent, spentVar, fixedTotal, fixedItems, incItems, autoInc, gotIn, saved, income, left, limit, catLimit, byCat, isCur, dim, dayFrac, goals, totalPerMonth, tot, dep, depPrin, cash, assets };
   }
 
   function alerts(c) {
@@ -1155,6 +1204,21 @@ tr.clickable:hover td { background: var(--sunken) }
       const can = c.income - (c.limit || c.spent);
       if (c.totalPerMonth > can) out.push(["warn", "Mục tiêu", `Các món đồ muốn mua cần ${fmt(c.totalPerMonth)}/tháng, nhưng thu nhập trừ giới hạn chi chỉ còn ${fmt(Math.max(0, can))}. Cân nhắc giảm chi hoặc lùi thời hạn.`]);
     }
+    // nhắc thu nhập (chỉ tháng hiện tại, khi tới ngày nhận)
+    if (c.isCur) {
+      const dnow = today.getDate(), mo = mkey(state.y, state.m);
+      c.incItems.forEach(it => {
+        const day = it.day || 1;
+        if (it.mode === "remind") {
+          if (dnow >= day && !incomeDone(it, mo))
+            out.push(["warn", "Lương", `Đã nhận ${it.name} chưa? Nếu rồi, tự thêm số tiền thực nhận vào thu nhập (gợi ý ${fmt(it.amount, it.cur)}).`,
+              { label: "Đã nhận, thêm", fn: () => startIncome({ note: it.name, cur: it.cur, amount: it.amount, recur: it.id }) }]);
+        } else if (it.extra && dnow >= day && dnow <= day + 6) {
+          out.push(["good", "Lương", `Đã tự cộng ${it.name} ${fmt(it.amount, it.cur)} cho tháng này. Tháng này có tăng ca/thưởng thì tự cộng thêm.`,
+            { label: "Thêm tăng ca", fn: () => startIncome({ note: "Tăng ca " + it.name, cur: it.cur, recur: it.id }) }]);
+        }
+      });
+    }
     return out;
   }
 
@@ -1183,11 +1247,13 @@ tr.clickable:hover td { background: var(--sunken) }
     $("mRight").textContent = c.isCur ? `Vạch đen: hôm nay (ngày ${today.getDate()}/${c.dim})` : (c.saved ? `Đã để dành ${fmt(c.saved)} trong tháng` : "");
 
     const al = $("alerts"); al.replaceChildren();
-    alerts(c).forEach(([lvl, chip, text]) => {
+    alerts(c).forEach(([lvl, chip, text, action]) => {
       const d = document.createElement("div"); d.className = "alert " + lvl;
       const s = document.createElement("span"); s.className = "chip"; s.textContent = chip;
       const t = document.createElement("span"); t.textContent = text;
-      d.append(s, t); al.append(d);
+      d.append(s, t);
+      if (action) { const b = document.createElement("button"); b.className = "small"; b.type = "button"; b.textContent = action.label; b.onclick = action.fn; d.append(b); }
+      al.append(d);
     });
 
     // danh mục
@@ -1320,6 +1386,7 @@ tr.clickable:hover td { background: var(--sunken) }
       if (catList.includes(prev)) sel.value = prev;
     }
 
+    renderIncome(c);
     renderFixed(c);
     renderDeposits(c);
     renderGifts();
@@ -1342,6 +1409,72 @@ tr.clickable:hover td { background: var(--sunken) }
     if (f && t && amt > 0) $("xHint").textContent = `Ước tính nhận: ${fmt(conv(amt, f.cur, t.cur), t.cur)} theo tỷ giá ${group(rate())} ₫/¥. Nếu ngân hàng thu phí hoặc tỷ giá khác, nhập số thực nhận.`;
     else $("xHint").textContent = accs.length < 2 ? "Cần ít nhất 2 tài khoản để chuyển tiền." : "Để trống ô “nhận được” thì app tự quy đổi theo tỷ giá.";
   }
+
+  // ---------- Thu nhập hàng tháng ----------
+  state.incomeCur = "JPY"; state.pendingRecur = null;
+  // một khoản "chỉ nhắc" coi như đã thêm trong tháng nếu có giao dịch thu gắn mã khoản đó, hoặc ghi chú trùng tên
+  const incomeDone = (it, mo) => list("tx").some(t => t.kind === "in" && t.month === mo && (t.recur === it.id || (t.note || "").toLowerCase().includes(it.name.toLowerCase())));
+  function renderIncome(c) {
+    const box = $("incomeList"); box.replaceChildren();
+    const items = list("incomes").sort((a, b) => (a.mode === "auto" ? 0 : 1) - (b.mode === "auto" ? 0 : 1) || (a.day || 99) - (b.day || 99));
+    $("incomeHint").textContent = items.length ? (c.autoInc ? `Tự cộng ${fmt(c.autoInc)}/tháng` : `${items.length} khoản`) : "";
+    document.querySelectorAll("#incomeCurSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.cur === state.incomeCur));
+    if (!items.length) { const e = document.createElement("div"); e.className = "empty"; e.textContent = "Chưa có khoản thu hàng tháng. Thêm lương, trợ cấp… để khỏi nhập lại mỗi tháng."; box.append(e); return; }
+    const mo = mkey(state.y, state.m);
+    items.forEach(it => {
+      const on = (it.start || "") <= mo, auto = it.mode === "auto";
+      const row = document.createElement("div"); row.className = "fixedrow" + (on ? "" : " off");
+      const main = document.createElement("div"); main.className = "fxmain";
+      const nm = document.createElement("div"); nm.className = "fxnm"; nm.append(curTag(it.cur), " ", it.name);
+      const bdg = document.createElement("span"); bdg.className = "incbadge " + (auto ? "auto" : "remind"); bdg.textContent = auto ? "Tự cộng" : "Nhắc"; nm.append(bdg);
+      if (it.day) { const d = document.createElement("span"); d.className = "fxday"; d.textContent = "ngày " + it.day; nm.append(d); }
+      if (!auto && on && incomeDone(it, mo)) { const d = document.createElement("span"); d.className = "incbadge auto"; d.textContent = "đã thêm"; nm.append(d); }
+      const amt = document.createElement("div"); amt.className = "fxamt num"; amt.textContent = fmt(it.amount, it.cur);
+      main.append(nm, amt);
+      const edit = document.createElement("button"); edit.className = "ghost small"; edit.type = "button"; edit.textContent = "Sửa"; edit.style.justifySelf = "start"; edit.style.paddingLeft = "0";
+      const tools = document.createElement("div"); tools.className = "tools"; tools.hidden = true;
+      const inp = document.createElement("input"); inp.inputMode = "decimal"; inp.value = it.cur === "JPY" ? group(it.amount) : short(it.amount, "VND").replace(" ₫", ""); inp.setAttribute("aria-label", "Số tiền mới cho " + it.name);
+      const ok = document.createElement("button"); ok.type = "button"; ok.textContent = "Lưu"; ok.onclick = () => setIncome(it.id, parseMoney(inp.value));
+      const rm = document.createElement("button"); rm.className = "ghost"; rm.type = "button"; rm.textContent = "Xóa"; rm.onclick = () => confirmClick(rm, "Xóa", () => removeIncome(it.id));
+      edit.onclick = () => { tools.hidden = !tools.hidden; if (!tools.hidden) inp.focus(); };
+      tools.append(inp, ok, rm);
+      row.append(main, edit, tools); box.append(row);
+    });
+  }
+  function setIncome(id, v) {
+    if (isDemo()) return demoToast();
+    const it = M.incomes[id]; if (!it) return;
+    if (!(v > 0)) { toast("Số tiền chưa hợp lệ. Ví dụ: 31man, 310000, 1man5"); return; }
+    repo.put("incomes", { ...it, amount: v }); render(); toast(`Đã đổi ${it.name} thành ${fmt(v, it.cur)}/tháng`);
+  }
+  function removeIncome(id) { if (isDemo()) return demoToast(); const it = M.incomes[id]; repo.del("incomes", id); render(); toast(it ? "Đã xóa khoản thu " + it.name : "Đã xóa"); }
+  // mở form Thêm giao dịch dạng Thu, điền sẵn để người dùng tự nhập/sửa số rồi lưu
+  function startIncome({ note, cur, amount, recur }) {
+    showTab("main");
+    state.kind = "in"; document.querySelectorAll("#kindSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.kind === "in"));
+    state.cur = cur || state.cur; state.accTouched = false;
+    state.pendingRecur = recur || null;
+    render();
+    $("tNote").value = note || "";
+    $("tAmount").value = amount ? (cur === "VND" ? short(amount, "VND").replace(" ₫", "") : group(amount)) : "";
+    if ($("tCat").querySelector('option[value="Lương"]')) $("tCat").value = "Lương";
+    $("addForm").scrollIntoView({ behavior: "smooth", block: "center" });
+    $("tAmount").focus();
+  }
+  document.querySelectorAll("#incomeCurSeg button").forEach(b => b.onclick = () => { state.incomeCur = b.dataset.cur; document.querySelectorAll("#incomeCurSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); });
+  $("incomeForm").onsubmit = async e => {
+    e.preventDefault();
+    const name = $("iName").value.trim(), amount = parseMoney($("iAmt").value), day = parseInt($("iDay").value) || 0;
+    if (!name) { toast("Nhập tên khoản thu"); return; }
+    if (!(amount > 0)) { toast("Số tiền chưa hợp lệ. Ví dụ: 31man, 310000, 1man5"); return; }
+    if (!await ensureReal()) return;
+    const it = { id: uid(), name, amount, cur: state.incomeCur, mode: $("iMode").value, start: mkey(state.y, state.m) };
+    if (day >= 1 && day <= 31) it.day = day;
+    if ($("iMode").value === "auto" && $("iExtra").checked) it.extra = true;
+    repo.put("incomes", it); render();
+    $("iName").value = ""; $("iAmt").value = ""; $("iDay").value = ""; $("iExtra").checked = false; $("iName").focus();
+    toast(it.mode === "auto" ? `Đã thêm thu tự cộng: ${name} ${fmt(amount, it.cur)}/tháng` : `Đã thêm nhắc thu: ${name}`);
+  };
 
   // ---------- Chi phí cố định hàng tháng ----------
   state.fixedCur = "JPY";
@@ -1720,6 +1853,8 @@ tr.clickable:hover td { background: var(--sunken) }
     if (!(amount > 0)) { toast("Số tiền chưa hợp lệ. Ví dụ: 1500, 3man, 45k, 1.2tr"); return; }
     const tx = { id: uid(), kind: state.kind, cat: $("tCat").value, amount, cur: state.cur, note: $("tNote").value.trim(), date: $("tDate").value || ymd(today) };
     if ($("tAcc").value) tx.acc = $("tAcc").value;
+    if (state.pendingRecur && state.kind === "in") tx.recur = state.pendingRecur;
+    state.pendingRecur = null;
     const accName = list("accounts").find(a => a.id === tx.acc)?.name;
     addTx(tx).then(() => { if (accName && !isDemo()) toast(`${state.kind === "out" ? "Đã trừ" : "Đã cộng"} ${fmt(amount, tx.cur)} ${state.kind === "out" ? "từ" : "vào"} ${accName}`); });
     $("tAmount").value = ""; $("tNote").value = ""; $("tAmount").focus();
@@ -2290,6 +2425,7 @@ tr.clickable:hover td { background: var(--sunken) }
       `Gia đình người Việt (hai vợ chồng) đang sống ở Nhật, có tiền ở cả tài khoản Nhật (yên) và Việt Nam (đồng).`,
       `Hôm nay: ${ymd(today)}. Đang xem tháng ${state.m}/${state.y}${c.isCur ? ` (đã qua ${Math.round(c.dayFrac * 100)}% tháng)` : ""}. Số liệu quy ra ${state.view}, tỷ giá người dùng nhập: 1 JPY = ${rate()} VND.`,
       `Thu nhập tháng: ${fmt(c.income)}. Giới hạn chi tiêu: ${st.limit ? fmt(c.limit) : "chưa đặt"}.`,
+      `Thu nhập hàng tháng: ` + (c.incItems.map(i => `${i.name} ${fmt(i.amount, i.cur)}${i.day ? ` (ngày ${i.day})` : ""} [${i.mode === "auto" ? "tự cộng" : "chờ tự thêm"}]`).join("; ") || "chưa khai báo") + (c.autoInc ? `; tự cộng ${fmt(c.autoInc)}/tháng, phần còn lại (tăng ca, PanChan…) là giao dịch thu đã ghi` : ""),
       `Đã chi: ${fmt(c.spent)}. Đã để dành trong tháng: ${fmt(c.saved)}. Còn lại: ${fmt(c.left)}.`,
       `Tài khoản: ` + (list("accounts").map(a => `${a.name} ${fmt(a.balance || 0, a.cur)}`).join("; ") || "chưa có") + `. Tổng bên Nhật ${fmt(c.tot.JPY, "JPY")}, bên Việt Nam ${fmt(c.tot.VND, "VND")}.`,
       `Tiết kiệm: ` + (list("deposits").map(d => isCash(d) ? `tiền mặt để dành (${d.bank || "tiền mặt"}) ${fmt(d.amount, d.cur)}, không tính lãi, từ ${d.start || "?"}` : `${d.bank} ${fmt(d.amount, d.cur)} lãi ${d.rate}%/năm kỳ hạn ${d.term} tháng, gửi ${d.start}, hiện ≈ ${fmt(depValue(d).value, d.cur)}`).join("; ") || "chưa có"),
@@ -2420,6 +2556,7 @@ ${context()}`;
   };
   const signOut = () => authM.signOut(auth).then(() => location.reload());
   $("logoutBtn").onclick = signOut; $("logoutBtn2").onclick = signOut;
+  $("syncBtn").onclick = () => { setSync(false, "Đang tải lại…"); location.reload(); };
   authM.onAuthStateChanged(auth, u => {
     fb.user = u;
     if (!u) { $("app").hidden = true; $("loginScreen").hidden = false; setAiState(); return; }

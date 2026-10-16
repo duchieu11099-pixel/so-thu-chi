@@ -1,6 +1,6 @@
 # Sổ Thu Chi
 
-Sổ tài chính gia đình dùng chung cho hai vợ chồng người Việt sống ở Nhật: thu chi bằng yên (¥) và đồng (₫), tài khoản ngân hàng Nhật và Việt Nam, sổ tiết kiệm, bảng tính lãi, bảng lãi suất ngân hàng, sổ mừng cưới (ai mừng mình bao nhiêu, gợi ý số tiền mừng lại), tiền mặt để dành (không lãi, chuyển sang gửi ngân hàng khi muốn), sổ nợ (ai nợ mình, mình nợ ai, từng lần trả), chi phí cố định hàng tháng (tiền nhà, mạng… nhập một lần tự tính mỗi tháng), cảnh báo tiêu quá đà và cố vấn AI (DeepSeek).
+Sổ tài chính gia đình dùng chung cho hai vợ chồng người Việt sống ở Nhật: thu chi bằng yên (¥) và đồng (₫), tài khoản ngân hàng Nhật và Việt Nam, sổ tiết kiệm, bảng tính lãi, bảng lãi suất ngân hàng, sổ mừng cưới (ai mừng mình bao nhiêu, gợi ý số tiền mừng lại), tiền mặt để dành (không lãi, chuyển sang gửi ngân hàng khi muốn), sổ nợ (ai nợ mình, mình nợ ai, từng lần trả), chi phí cố định hàng tháng (tiền nhà, mạng… nhập một lần tự tính mỗi tháng), thu nhập cố định hàng tháng (lương tự cộng, nhắc nhận lương PanChan, hỏi có tăng ca không), cảnh báo tiêu quá đà và cố vấn AI (DeepSeek).
 
 **Link app:** https://so-thu-chi-ec435.firebaseapp.com (Firebase Hosting; link GitHub Pages cũ https://duchieu11099-pixel.github.io/so-thu-chi/ tự chuyển sang đây)
 
@@ -39,6 +39,7 @@ Sổ tài chính gia đình dùng chung cho hai vợ chồng người Việt s�
 | `hh/main/fixed/{id}` | Chi phí cố định hàng tháng: `name`, `amount`, `cur`, `cat`, `start` (tháng bắt đầu áp dụng, "YYYY-MM"). Tự tính vào chi tiêu mỗi tháng, không trừ số dư tài khoản |
 | `hh/main/gifts/{id}` | Mừng cưới (sổ xã giao, KHÔNG cộng/trừ tiền vào tài khoản nên không tính vào tài sản): `dir` (in = họ mừng mình, out = mình đi mừng), `name`, `group`, `event`, `date`, `amount`, `cur`, `note` |
 | `hh/main/debts/{id}` | Sổ nợ: `dir` (lend = người khác nợ mình, borrow = mình nợ), `name`, `amount`, `cur`, `date`, `due`, `note`, `acc`, `pays` (các lần trả: `amount`, `date`, `note`) |
+| `hh/main/incomes/{id}` | Thu nhập hàng tháng: `name`, `amount`, `cur`, `day` (ngày nhận), `mode` (auto = tự cộng vào tháng, remind = nhắc tự thêm), `extra` (true = nhắc hỏi tăng ca sau ngày nhận), `start` (tháng bắt đầu áp dụng "YYYY-MM") |
 | `ref/rates` | Bảng lãi suất (tự nạp từ `docs/rates.json` khi tệp mới hơn) |
 
 ## Chạy thử trên máy

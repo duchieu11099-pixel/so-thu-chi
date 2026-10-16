@@ -392,7 +392,7 @@ tr.clickable:hover td { background: var(--sunken) }
     <div>
       <div class="label">Sổ tài chính gia đình · ¥ &amp; ₫</div>
       <h1>Sổ Thu Chi</h1>
-      <div class="syncline"><span class="dot" id="syncDot"></span><span id="syncText">Đang kết nối…</span><button class="ghost small" id="syncBtn" type="button" title="Tải lại dữ liệu mới nhất">↺</button></div>
+      <div class="syncline"><span class="dot" id="syncDot"></span><span id="syncText">Đang kết nối…</span><button class="ghost small" id="syncBtn" type="button" title="Tải lại dữ liệu mới nhất">↺</button><button class="ghost small" id="notifBtn" type="button" title="Bật thông báo lương" hidden>🔔</button></div>
       <div class="userchip" id="userChip" hidden><img id="userPhoto" alt=""><span id="userName"></span><button class="ghost small" id="logoutBtn" type="button">Đăng xuất</button></div>
     </div>
     <div class="toolbar">
@@ -2568,7 +2568,49 @@ ${context()}`;
     state.meName = (u.displayName || u.email || "").trim().split(/\s+/).pop();
     if (!repo) { repo = cloudRepo(); repo.start(); }
     setAiState();
+    initPush(u);
   });
+
+  // ---------- Push notification (FCM) ----------
+  async function registerFcmToken(u) {
+    const vapidKey = window.SO_THU_CHI_CONFIG?.vapidKey;
+    const workerUrl = window.SO_THU_CHI_CONFIG?.aiProxyUrl;
+    if (!vapidKey || !workerUrl) return;
+    try {
+      const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
+      const { getMessaging, getToken } = await import(base + "firebase-messaging.js");
+      const msg = getMessaging(app);
+      const token = await getToken(msg, { vapidKey, serviceWorkerRegistration: swReg });
+      if (!token) return;
+      const idToken = await u.getIdToken();
+      await fetch(workerUrl + "/push-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + idToken },
+        body: JSON.stringify({ token })
+      });
+      $("notifBtn").hidden = true;
+      toast("✅ Đã bật thông báo lương!");
+    } catch (e) { console.warn("FCM:", e); toast("Không bật được thông báo: " + (e.message || e)); }
+  }
+
+  async function initPush(u) {
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
+    const vapidKey = window.SO_THU_CHI_CONFIG?.vapidKey;
+    if (!vapidKey) return; // chưa cấu hình
+    if (Notification.permission === "granted") {
+      // Đã có quyền → đăng ký token ngầm
+      registerFcmToken(u).catch(() => {});
+    } else if (Notification.permission !== "denied") {
+      // Chưa hỏi → hiện nút chuông
+      $("notifBtn").hidden = false;
+    }
+  }
+
+  $("notifBtn").onclick = async () => {
+    const perm = await Notification.requestPermission();
+    if (perm === "granted") { $("notifBtn").hidden = true; registerFcmToken(fb.user).catch(() => {}); }
+    else { $("notifBtn").hidden = true; toast("Bạn đã chặn thông báo. Vào cài đặt trình duyệt để bật lại."); }
+  };
 })();
 </script>
 </body>

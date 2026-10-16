@@ -16,5 +16,8 @@ window.SO_THU_CHI_CONFIG = {
   canonicalHost: "so-thu-chi-ec435.firebaseapp.com",
   // Địa chỉ proxy DeepSeek (Cloudflare Worker).
   // Để trống "" nếu chưa cài: app vẫn chạy, chỉ tắt phần cố vấn AI.
-  aiProxyUrl: "https://so-thu-chi-ai.duchieu11099.workers.dev"
+  aiProxyUrl: "https://so-thu-chi-ai.duchieu11099.workers.dev",
+  // Khóa VAPID cho Web Push (lấy từ Firebase Console → Project Settings → Cloud Messaging →
+  // Web Push certificates → Generate key pair → copy "Key pair"). Để trống "" để tắt thông báo.
+  vapidKey: ""
 };

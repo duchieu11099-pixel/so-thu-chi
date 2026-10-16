@@ -1,10 +1,12 @@
-// Proxy DeepSeek cho Sổ Thu Chi (Cloudflare Worker).
+// Proxy DeepSeek + Push Notification cho Sổ Thu Chi (Cloudflare Worker).
 // - Giữ API key DeepSeek ở phía máy chủ (secret DEEPSEEK_API_KEY), trang web không bao giờ thấy key.
 // - Chỉ trả lời người đã đăng nhập Firebase bằng email nằm trong ALLOWED_EMAILS.
 // - Chuyển tiếp câu trả lời dạng stream (SSE) về trang.
+// - Lưu FCM push token (POST /push-token) và gửi nhắc lương qua Cron Trigger.
 
 const JWKS_URL = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
 const DEEPSEEK_URL = "https://api.deepseek.com/chat/completions";
+const FCM_URL = "https://fcm.googleapis.com/fcm/send";
 const MAX_MESSAGES = 20;
 const MAX_CHARS = 40000;
 
@@ -65,11 +67,49 @@ function json(status, body, headers) {
   return new Response(JSON.stringify(body), { status, headers: { ...headers, "Content-Type": "application/json; charset=utf-8" } });
 }
 
+// Gửi push notification qua FCM Legacy HTTP API
+async function sendFcmPush(tokens, notification, data, serverKey) {
+  if (!tokens.length || !serverKey) return { sent: 0 };
+  const res = await fetch(FCM_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "key=" + serverKey },
+    body: JSON.stringify({ registration_ids: tokens, notification, data: data || {} })
+  });
+  const body = await res.json().catch(() => ({}));
+  return { status: res.status, ...body };
+}
+
 export default {
+  // ---- HTTP requests ----
   async fetch(request, env) {
     const h = cors(env, request.headers.get("Origin"));
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: h });
     if (request.method !== "POST") return json(405, { error: "Chỉ hỗ trợ POST" }, h);
+
+    const url = new URL(request.url);
+
+    // ---- POST /push-token: lưu FCM token của người dùng ----
+    if (url.pathname === "/push-token") {
+      if (!env.SO_THU_CHI_KV) return json(500, { error: "KV chưa được cấu hình" }, h);
+      let user;
+      try {
+        const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+        user = await verifyFirebaseToken(token, env.FIREBASE_PROJECT_ID, await getKeys());
+      } catch (e) {
+        return json(401, { error: "Chưa đăng nhập hoặc phiên đăng nhập đã hết hạn" }, h);
+      }
+      const allowedEmails = (env.ALLOWED_EMAILS || "").toLowerCase().split(",").map(s => s.trim()).filter(Boolean);
+      if (!allowedEmails.includes(String(user.email || "").toLowerCase())) return json(403, { error: "Email này chưa được phép" }, h);
+
+      let body;
+      try { body = await request.json(); } catch { return json(400, { error: "Dữ liệu không hợp lệ" }, h); }
+      if (!body?.token || typeof body.token !== "string") return json(400, { error: "Thiếu FCM token" }, h);
+
+      await env.SO_THU_CHI_KV.put("token:" + user.sub, body.token, { expirationTtl: 60 * 24 * 3600 }); // 60 ngày
+      return json(200, { ok: true }, h);
+    }
+
+    // ---- POST / (default): DeepSeek AI proxy ----
     if (!env.DEEPSEEK_API_KEY) return json(500, { error: "Proxy chưa có DEEPSEEK_API_KEY" }, h);
 
     // 1. Xác thực người dùng
@@ -117,5 +157,46 @@ export default {
       status: 200,
       headers: { ...h, "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-cache" }
     });
+  },
+
+  // ---- Cron Triggers: nhắc lương ngày 15 và 25 ----
+  async scheduled(event, env, ctx) {
+    if (!env.SO_THU_CHI_KV || !env.FCM_SERVER_KEY) return;
+
+    // Xác định ngày theo giờ Nhật (UTC+9)
+    const jpDate = new Date(event.scheduledTime + 9 * 3600 * 1000);
+    const day = jpDate.getUTCDate();
+
+    let notification;
+    if (day === 15) {
+      notification = {
+        title: "💰 Lương PanChan hôm nay",
+        body: "Đã nhận lương chưa? Mở app ghi vào sổ nhé! Trợ cấp con 1 man 5 cũng đã tự cộng."
+      };
+    } else if (day === 25) {
+      notification = {
+        title: "💴 Lương tháng này",
+        body: "Lương cơ bản 31 man đã tự cộng vào sổ. Tháng này có tăng ca không? Mở app thêm vào!"
+      };
+    }
+
+    if (!notification) return; // không phải ngày nhắc
+
+    // Đọc tất cả FCM token từ KV
+    const list = await env.SO_THU_CHI_KV.list({ prefix: "token:" });
+    const tokens = [];
+    for (const key of list.keys) {
+      const val = await env.SO_THU_CHI_KV.get(key.name);
+      if (val) tokens.push(val);
+    }
+    if (!tokens.length) return;
+
+    // Gửi push notification
+    ctx.waitUntil(sendFcmPush(
+      tokens,
+      { ...notification, icon: "/icon.svg", click_action: "/" },
+      { tag: "stc-salary", url: "/" },
+      env.FCM_SERVER_KEY
+    ));
   }
 };

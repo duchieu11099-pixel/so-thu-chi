@@ -37,7 +37,7 @@ Sổ tài chính gia đình dùng chung cho hai vợ chồng người Việt s�
 | `hh/main/goals/{id}` | Món đồ muốn mua: `name`, `price`, `cur`, `saved`, `by` |
 | `hh/main/deposits/{id}` | Sổ tiết kiệm: `bank`, `cur`, `amount`, `rate`, `term`, `start`, `mode`, `from`. Tiền mặt để dành (không lãi) có `kind: "cash"` và không có `rate`, `term`, `mode` |
 | `hh/main/fixed/{id}` | Chi phí cố định hàng tháng: `name`, `amount`, `cur`, `cat`, `start` (tháng bắt đầu áp dụng, "YYYY-MM"). Tự tính vào chi tiêu mỗi tháng, không trừ số dư tài khoản |
-| `hh/main/gifts/{id}` | Mừng cưới: `dir` (in = họ mừng mình, out = mình đi mừng), `name`, `group`, `event`, `date`, `amount`, `cur`, `note`, `acc`, `txId` |
+| `hh/main/gifts/{id}` | Mừng cưới (sổ xã giao, KHÔNG cộng/trừ tiền vào tài khoản nên không tính vào tài sản): `dir` (in = họ mừng mình, out = mình đi mừng), `name`, `group`, `event`, `date`, `amount`, `cur`, `note` |
 | `hh/main/debts/{id}` | Sổ nợ: `dir` (lend = người khác nợ mình, borrow = mình nợ), `name`, `amount`, `cur`, `date`, `due`, `note`, `acc`, `pays` (các lần trả: `amount`, `date`, `note`) |
 | `ref/rates` | Bảng lãi suất (tự nạp từ `docs/rates.json` khi tệp mới hơn) |
 

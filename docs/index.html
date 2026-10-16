@@ -287,7 +287,7 @@ form.depform .depseg { grid-column: 1 / -1; justify-self: start }
 
 /* Mừng cưới */
 .giftform { display: grid; gap: 8px; grid-template-columns: auto minmax(0,1.4fr) minmax(0,1fr) auto; align-items: end }
-.giftform .r2 { grid-column: 1 / -1; display: grid; gap: 8px; grid-template-columns: minmax(0,1fr) minmax(0,1.3fr) 10.5em minmax(0,1fr) }
+.giftform .r2 { grid-column: 1 / -1; display: grid; gap: 8px; grid-template-columns: minmax(0,1fr) minmax(0,1.3fr) 10.5em }
 .giftform .r3 { grid-column: 1 / -1; display: grid; gap: 8px; grid-template-columns: minmax(0,1fr) auto; align-items: end }
 .lookup { display: grid; gap: 10px }
 .hit { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 8px }
@@ -680,7 +680,6 @@ tr.clickable:hover td { background: var(--sunken) }
               <label class="f" for="wGroup">Quan hệ<select id="wGroup"><option value="Họ hàng nội">Họ hàng nội</option><option value="Họ hàng ngoại">Họ hàng ngoại</option><option value="Bạn bè">Bạn bè</option><option value="Bạn học">Bạn học</option><option value="Đồng nghiệp">Đồng nghiệp</option><option value="Hàng xóm">Hàng xóm</option><option value="Người Nhật">Người Nhật</option><option value="Khác">Khác</option></select></label>
               <label class="f" for="wEvent">Đám cưới<input id="wEvent" list="giftEvents" placeholder="vd: Cưới của mình 2026"></label>
               <label class="f" for="wDate">Ngày<input id="wDate" type="date"></label>
-              <label class="f" for="wAcc">Tiền vào/ra tài khoản<select id="wAcc"></select></label>
             </div>
             <div class="r3">
               <label class="f" for="wNote">Ghi chú<input id="wNote" placeholder="vd: kèm quà, đi cùng vợ"></label>
@@ -1906,9 +1905,6 @@ tr.clickable:hover td { background: var(--sunken) }
     // gợi ý nhập
     const dl = $("giftNames"); dl.replaceChildren(...ps.map(p => opt(p.name, "")));
     const de = $("giftEvents"); de.replaceChildren(...evs.map(e => opt(e.name, "")));
-    const prevAcc = $("wAcc").value;
-    $("wAcc").replaceChildren(opt("", "Không gắn tài khoản"), ...list("accounts").map(a => opt(a.id, `${a.name} (${SYM[a.cur]})`)));
-    if ([...$("wAcc").options].some(o => o.value === prevAcc)) $("wAcc").value = prevAcc;
     updateGiftRoute();
     renderLookup();
   }
@@ -1921,8 +1917,6 @@ tr.clickable:hover td { background: var(--sunken) }
       const sg = suggestFor(p);
       if (sg) parts.push(`${p.name} đã mừng bạn ${fmt(sg.base, sg.g.cur)}${sg.g.event ? " (" + sg.g.event + ")" : ""}. Nên mừng lại ít nhất ${fmt(sg.base, sg.g.cur)}${sg.up ? `, hoặc khoảng ${fmt(sg.up, sg.g.cur)} vì đã ${Math.floor(sg.years)} năm` : ""}.`);
     } else if (p) parts.push(`${p.name} đã có trong sổ (${p.ins.length} lần mừng mình, ${p.outs.length} lần mình mừng).`);
-    const a = list("accounts").find(x => x.id === $("wAcc").value);
-    if (a) parts.push(`${state.giftDir === "in" ? "Cộng vào" : "Trừ từ"} ${a.name} và ghi vào thu chi tháng.`);
     r.textContent = parts.join(" ");
   }
 
@@ -2068,7 +2062,6 @@ tr.clickable:hover td { background: var(--sunken) }
   document.querySelectorAll("#giftFilter button").forEach(b => b.onclick = () => { state.giftFilter = b.dataset.f; renderGifts(); });
   $("wSearch").oninput = renderLookup;
   $("wName").oninput = updateGiftRoute;
-  $("wAcc").onchange = () => { const a = list("accounts").find(x => x.id === $("wAcc").value); if (a) state.giftCur = a.cur; renderGifts(); };
   $("wDate").value = ymd(today);
   try { const ev = localStorage.getItem("sothuchi:lastEvent"); if (ev) $("wEvent").value = ev; } catch {}
   $("giftForm").onsubmit = async e => {
@@ -2079,11 +2072,6 @@ tr.clickable:hover td { background: var(--sunken) }
     if (!await ensureReal()) return;
     const g = { id: uid(), dir: state.giftDir, name, group: $("wGroup").value, event: $("wEvent").value.trim(), date: $("wDate").value || ymd(today), amount, cur: state.giftCur, note: $("wNote").value.trim() };
     if (state.me) { g.by = state.me; g.byName = state.meName; }
-    const acc = $("wAcc").value;
-    if (acc) {
-      g.acc = acc; g.txId = uid();
-      await addTx({ id: g.txId, kind: g.dir === "in" ? "in" : "out", cat: g.dir === "in" ? "Tiền mừng cưới" : "Quà & hiếu hỉ", amount, cur: g.cur, acc, note: (g.dir === "in" ? "Mừng cưới từ " : "Mừng cưới ") + name, date: g.date });
-    }
     repo.put("gifts", g);
     try { if (g.event) localStorage.setItem("sothuchi:lastEvent", g.event); } catch {}
     toast(`Đã lưu: ${name} ${g.dir === "in" ? "mừng" : "được mình mừng"} ${fmt(amount, g.cur)}`);

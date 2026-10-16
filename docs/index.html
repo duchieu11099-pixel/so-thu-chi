@@ -262,6 +262,11 @@ tr.clickable:hover td { background: var(--sunken) }
   .giftsum { grid-template-columns: minmax(0,1fr) minmax(0,1fr) }
 }
 
+.bulk { display: grid; gap: 10px }
+.bulk textarea { font-family: var(--f-body); line-height: 1.5; resize: vertical }
+.bulkopts { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) }
+.bulk td.err { color: var(--bad) }
+
 /* Cài đặt */
 .settings { display: grid; gap: 12px }
 .settings .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px }
@@ -596,6 +601,23 @@ tr.clickable:hover td { background: var(--sunken) }
           </form>
           <datalist id="giftNames"></datalist>
           <datalist id="giftEvents"></datalist>
+          <details id="bulkDetails">
+            <summary>Dán cả danh sách (nhiều người một lúc)</summary>
+            <div class="bulk">
+              <div class="hint">Mỗi dòng một người. Ví dụ: “Chú Tùng 1tr”, “Vân 500” (= 500.000 ₫), “Khanh 3tr5” (= 3.500.000 ₫), “Bạn Hưng 3man” hoặc “Cường 1m” (= ¥30.000, ¥10.000). Ghi chú trong ngoặc được giữ lại cùng tên.</div>
+              <label class="f" for="bulkText">Danh sách<textarea id="bulkText" rows="8" placeholder="* Chú Tùng 1tr&#10;* Vân 500&#10;* Bạn Hưng 3man"></textarea></label>
+              <div class="bulkopts">
+                <label class="f" for="bulkDir">Loại<select id="bulkDir"><option value="in">Họ mừng mình</option><option value="out">Mình đi mừng</option></select></label>
+                <label class="f" for="bulkEvent">Đám cưới<input id="bulkEvent" list="giftEvents" value="Đám cưới của mình"></label>
+                <label class="f" for="bulkDate">Ngày cưới (nếu nhớ)<input id="bulkDate" type="date"></label>
+                <label class="f" for="bulkGroup">Quan hệ<select id="bulkGroup"><option value="Khác">Khác</option><option value="Họ hàng nội">Họ hàng nội</option><option value="Họ hàng ngoại">Họ hàng ngoại</option><option value="Bạn bè">Bạn bè</option><option value="Bạn học">Bạn học</option><option value="Đồng nghiệp">Đồng nghiệp</option><option value="Hàng xóm">Hàng xóm</option><option value="Người Nhật">Người Nhật</option></select></label>
+              </div>
+              <div class="hint">Người có tên bắt đầu bằng “Bạn …” tự được xếp vào nhóm Bạn bè.</div>
+              <div class="hint" id="bulkSummary"></div>
+              <div class="txwrap" id="bulkTableWrap" hidden><table><thead><tr><th>#</th><th>Tên</th><th class="r">Số tiền</th><th></th></tr></thead><tbody id="bulkBody"></tbody></table></div>
+              <div><button class="primary" id="bulkSave" type="button" disabled>Lưu</button></div>
+            </div>
+          </details>
         </section>
 
         <section class="card">
@@ -1637,6 +1659,88 @@ tr.clickable:hover td { background: var(--sunken) }
       box.append(el);
     });
   }
+
+  // Tách một dòng danh sách tiền mừng thành tên + số tiền.
+  // Quy ước: số không có đơn vị (< 10.000) là nghìn đồng (500 = 500.000 ₫); "tr" là triệu đồng ("3tr5" = 3.500.000 ₫);
+  // "m", "man", "万" là man yên (1m = ¥10.000); "k" là nghìn đồng; "¥", "円", "yen" là yên.
+  function parseGiftLine(raw) {
+    const line = String(raw || "").replace(/^\s*(?:[*•\-–+·]+|\d+[.)])\s*/u, "").trim();
+    if (!line) return null;
+    const re = /([¥￥])?\s*(\d+(?:[.,]\d+)?)\s*(tr(?:iệu)?|man|m|万|k|nghìn|ngàn|円|yen|yên|đ|₫|vnd)?(\d)?(?![\p{L}\d])/giu;
+    const hits = [...line.matchAll(re)];
+    if (!hits.length) return { name: line, error: "Không thấy số tiền" };
+    const h = hits[hits.length - 1];
+    const num = parseFloat(h[2].replace(",", "."));
+    const unit = h[1] ? "¥" : (h[3] || "").toLowerCase();
+    if (h[4] && !unit.startsWith("tr")) return { name: line, error: "Số tiền khó hiểu" };
+    let amount, cur;
+    if (unit.startsWith("tr")) { amount = (h[4] ? parseFloat(h[2] + "." + h[4]) : num) * 1e6; cur = "VND"; }
+    else if (unit === "m" || unit === "man" || unit === "万") { amount = num * 1e4; cur = "JPY"; }
+    else if (unit === "k" || unit === "nghìn" || unit === "ngàn") { amount = num * 1e3; cur = "VND"; }
+    else if (["¥", "円", "yen", "yên"].includes(unit)) { amount = num; cur = "JPY"; }
+    else if (["đ", "₫", "vnd"].includes(unit)) { amount = num < 10000 ? num * 1e3 : num; cur = "VND"; }
+    else if (num < 10000) { amount = num * 1e3; cur = "VND"; }
+    else if (num < 100000) { amount = num; cur = "JPY"; }
+    else { amount = num; cur = "VND"; }
+    const name = (line.slice(0, h.index) + " " + line.slice(h.index + h[0].length))
+      .replace(/\(\s*\)/g, " ")
+      .replace(/\(\s*/g, "(").replace(/\s*\)/g, ")")
+      .replace(/\s*\(/g, " (")
+      .replace(/\s+/g, " ").trim()
+      .replace(/^\((.*)\)$/, "$1");
+    if (!name) return { name: line, error: "Không thấy tên" };
+    return { name, amount: Math.round(amount), cur };
+  }
+
+  function bulkRows() {
+    const dir = $("bulkDir").value, ev = $("bulkEvent").value.trim().toLowerCase();
+    const key = (name, amount, cur) => [normName(name), amount, cur, ev, dir].join("|");
+    const existing = new Set(list("gifts").map(g => [normName(g.name), g.amount, g.cur, (g.event || "").trim().toLowerCase(), g.dir].join("|")));
+    const seen = new Set();
+    return $("bulkText").value.split(/\r?\n/).map(parseGiftLine).filter(Boolean).map(r => {
+      if (r.error) return r;
+      const k = key(r.name, r.amount, r.cur);
+      const dup = existing.has(k) ? "Đã có trong sổ" : seen.has(k) ? "Trùng dòng trên" : "";
+      seen.add(k);
+      return { ...r, dup };
+    });
+  }
+  function renderBulk() {
+    const rows = bulkRows();
+    const body = $("bulkBody"); body.replaceChildren();
+    $("bulkTableWrap").hidden = !rows.length;
+    rows.forEach((r, i) => {
+      const tr = document.createElement("tr");
+      const td = (t, cls) => { const x = document.createElement("td"); if (cls) x.className = cls; x.textContent = t; return x; };
+      const st = document.createElement("td");
+      if (r.error || r.dup) { const c = document.createElement("span"); c.className = "status " + (r.error ? "no" : "neutral"); c.textContent = r.error || r.dup + ", bỏ qua"; st.append(c); }
+      tr.append(td(String(i + 1), "num"), td(r.name, r.error ? "err" : ""), td(r.error ? "—" : fmt(r.amount, r.cur), "r num"), st);
+      body.append(tr);
+    });
+    const ok = rows.filter(r => !r.error && !r.dup), bad = rows.filter(r => r.error).length, dup = rows.filter(r => r.dup).length;
+    $("bulkSummary").textContent = rows.length ? [`${ok.length} người sẽ được lưu: ${ok.length ? mixedText(ok) : "—"}`, bad && `${bad} dòng chưa đọc được, sửa lại dòng đó cho rõ số tiền`, dup && `${dup} dòng đã có nên bỏ qua`].filter(Boolean).join(" · ") : "";
+    $("bulkSave").disabled = !ok.length;
+    $("bulkSave").textContent = ok.length ? `Lưu ${ok.length} người` : "Lưu";
+  }
+  ["bulkText", "bulkEvent"].forEach(id => $(id).oninput = renderBulk);
+  $("bulkDir").onchange = renderBulk;
+  $("bulkSave").onclick = async () => {
+    const rows = bulkRows().filter(r => !r.error && !r.dup);
+    if (!rows.length) return;
+    if (!await ensureReal()) return;
+    $("bulkSave").disabled = true; $("bulkSave").textContent = "Đang lưu…";
+    const dir = $("bulkDir").value, event = $("bulkEvent").value.trim(), date = $("bulkDate").value || "", grp = $("bulkGroup").value;
+    try {
+      for (const r of rows) {
+        const g = { id: uid(), dir, name: r.name, group: /^bạn\s/i.test(r.name) ? "Bạn bè" : grp, event, date, amount: r.amount, cur: r.cur };
+        if (state.me) { g.by = state.me; g.byName = state.meName; }
+        await repo.put("gifts", g);
+      }
+      $("bulkText").value = ""; $("bulkDetails").open = false;
+      toast(`Đã lưu ${rows.length} người vào sổ mừng cưới: ${mixedText(rows)}`);
+    } catch (e) { saveErr(e); }
+    renderBulk(); render(); showTab("gift");
+  };
 
   async function removeGift(id) {
     if (isDemo()) return demoToast();

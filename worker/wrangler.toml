@@ -6,7 +6,7 @@ preview_urls = false
 
 [vars]
 # Mã dự án Firebase (Project ID), xem trong Firebase console > Project settings
-FIREBASE_PROJECT_ID = "DIEN_PROJECT_ID"
+FIREBASE_PROJECT_ID = "so-thu-chi-ec435"
 # Địa chỉ trang app được phép gọi proxy (GitHub Pages)
 ALLOWED_ORIGIN = "https://duchieu11099-pixel.github.io"
 DEEPSEEK_MODEL = "deepseek-chat"

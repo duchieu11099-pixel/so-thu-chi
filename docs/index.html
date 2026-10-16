@@ -232,6 +232,36 @@ form.depform .w2 { grid-column: span 2 }
 .sources a { overflow-wrap: anywhere }
 .advice { white-space: pre-wrap; font-size: .92rem; background: var(--sunken); border-radius: 8px; padding: 12px }
 
+/* Mừng cưới */
+.giftform { display: grid; gap: 8px; grid-template-columns: auto minmax(0,1.4fr) minmax(0,1fr) auto; align-items: end }
+.giftform .r2 { grid-column: 1 / -1; display: grid; gap: 8px; grid-template-columns: minmax(0,1fr) minmax(0,1.3fr) 10.5em minmax(0,1fr) }
+.giftform .r3 { grid-column: 1 / -1; display: grid; gap: 8px; grid-template-columns: minmax(0,1fr) auto; align-items: end }
+.lookup { display: grid; gap: 10px }
+.hit { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 8px }
+.hit .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap }
+.hit .name { font-weight: 600; font-size: 1.02rem }
+.hit .suggest { font-size: .92rem; background: var(--accent-soft); border-radius: 6px; padding: 8px 10px }
+.hit .suggest b { font-family: var(--f-num) }
+.hit ul { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 4px; font-size: .86rem }
+.hit li { display: flex; justify-content: space-between; gap: 8px; align-items: center; flex-wrap: wrap }
+.hit li .amt { font-family: var(--f-num) }
+.hit li .in { color: var(--good) }
+.giftsum { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px }
+tr.clickable { cursor: pointer }
+tr.clickable:hover td { background: var(--sunken) }
+.status.neutral { background: var(--sunken); color: var(--muted) }
+.events { display: grid }
+.event { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2px 10px; padding: 10px 0; border-bottom: 1px solid var(--line) }
+.event:last-child { border-bottom: 0 }
+.event .nm { font-weight: 500; overflow-wrap: anywhere }
+.event .sub { grid-column: 1 / -1; font-size: .78rem; color: var(--muted) }
+@media (max-width: 560px) {
+  .giftform { grid-template-columns: minmax(0,1fr) auto }
+  .giftform .giftseg, .giftform .f-name { grid-column: 1 / -1 }
+  .giftform .r2 { grid-template-columns: minmax(0,1fr) minmax(0,1fr) }
+  .giftsum { grid-template-columns: minmax(0,1fr) minmax(0,1fr) }
+}
+
 /* Cài đặt */
 .settings { display: grid; gap: 12px }
 .settings .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px }
@@ -331,6 +361,7 @@ form.depform .w2 { grid-column: span 2 }
   <div class="tabs" role="tablist">
     <button role="tab" id="tabMain" aria-selected="true" aria-controls="pMain">Thu chi</button>
     <button role="tab" id="tabSave" aria-selected="false" aria-controls="pSave">Tiết kiệm &amp; lãi suất</button>
+    <button role="tab" id="tabGift" aria-selected="false" aria-controls="pGift">Mừng cưới</button>
   </div>
 
   <!-- ===================== TAB THU CHI ===================== -->
@@ -527,6 +558,73 @@ form.depform .w2 { grid-column: span 2 }
       </div>
     </div>
   </div>
+
+  <!-- ===================== TAB MỪNG CƯỚI ===================== -->
+  <div id="pGift" role="tabpanel" aria-labelledby="tabGift" hidden style="display:grid;gap:20px">
+    <section class="card">
+      <div class="cardhead"><h2>Ai đã mừng mình bao nhiêu?</h2><span class="hint">Nhận thiệp cưới thì gõ tên người đó để biết nên mừng lại bao nhiêu</span></div>
+      <input id="wSearch" type="search" placeholder="Gõ tên, vd: Lan, anh Tuấn… (không cần dấu)" aria-label="Tìm theo tên">
+      <div class="lookup" id="wLookup"></div>
+    </section>
+
+    <div class="cols">
+      <div class="col">
+        <section class="card">
+          <div class="cardhead"><h2>Ghi tiền mừng</h2><span class="hint">Lưu xong, ô tên tự trống để nhập phong bì tiếp theo</span></div>
+          <form class="giftform" id="giftForm" autocomplete="off">
+            <div class="seg giftseg" role="group" aria-label="Loại" id="giftSeg">
+              <button type="button" data-dir="in" aria-pressed="true">Họ mừng mình</button>
+              <button type="button" data-dir="out" aria-pressed="false">Mình đi mừng</button>
+            </div>
+            <label class="f f-name" for="wName"><span id="wNameLabel">Tên người mừng</span><input id="wName" list="giftNames" placeholder="vd: Nguyễn Thị Lan" required></label>
+            <label class="f" for="wAmt">Số tiền<input id="wAmt" inputmode="decimal" placeholder="vd: 3man, 500k" required></label>
+            <div class="seg curpick" role="group" aria-label="Loại tiền" id="giftCurSeg">
+              <button type="button" data-cur="JPY" aria-pressed="true">¥</button>
+              <button type="button" data-cur="VND" aria-pressed="false">₫</button>
+            </div>
+            <div class="r2">
+              <label class="f" for="wGroup">Quan hệ<select id="wGroup"><option value="Họ hàng nội">Họ hàng nội</option><option value="Họ hàng ngoại">Họ hàng ngoại</option><option value="Bạn bè">Bạn bè</option><option value="Bạn học">Bạn học</option><option value="Đồng nghiệp">Đồng nghiệp</option><option value="Hàng xóm">Hàng xóm</option><option value="Người Nhật">Người Nhật</option><option value="Khác">Khác</option></select></label>
+              <label class="f" for="wEvent">Đám cưới<input id="wEvent" list="giftEvents" placeholder="vd: Cưới của mình 2026"></label>
+              <label class="f" for="wDate">Ngày<input id="wDate" type="date"></label>
+              <label class="f" for="wAcc">Tiền vào/ra tài khoản<select id="wAcc"></select></label>
+            </div>
+            <div class="r3">
+              <label class="f" for="wNote">Ghi chú<input id="wNote" placeholder="vd: kèm quà, đi cùng vợ"></label>
+              <button class="primary" type="submit">Lưu</button>
+            </div>
+            <div class="route" id="giftRoute"></div>
+          </form>
+          <datalist id="giftNames"></datalist>
+          <datalist id="giftEvents"></datalist>
+        </section>
+
+        <section class="card">
+          <div class="cardhead"><h2>Sổ mừng cưới</h2><span class="hint" id="giftCount"></span></div>
+          <div class="giftsum">
+            <div class="total"><span class="label">Đã nhận</span><span class="v num" id="gIn">0</span><span class="sub num" id="gInSub"></span></div>
+            <div class="total"><span class="label">Đã đi mừng</span><span class="v num" id="gOut">0</span><span class="sub num" id="gOutSub"></span></div>
+            <div class="total"><span class="label">Chưa mừng lại</span><span class="v num" id="gOwe">0</span><span class="sub" id="gOweSub"></span></div>
+          </div>
+          <div class="seg" role="group" aria-label="Lọc" id="giftFilter">
+            <button type="button" data-f="all" aria-pressed="true">Tất cả</button>
+            <button type="button" data-f="owe" aria-pressed="false">Chưa mừng lại</button>
+            <button type="button" data-f="in" aria-pressed="false">Họ mừng</button>
+            <button type="button" data-f="out" aria-pressed="false">Mình mừng</button>
+          </div>
+          <div class="txwrap"><table><thead><tr><th>Người</th><th>Quan hệ</th><th class="r">Họ mừng mình</th><th class="r">Mình mừng họ</th><th>Trạng thái</th></tr></thead><tbody id="giftBody"></tbody></table></div>
+          <div class="empty" id="giftEmpty" hidden>Chưa có ai trong sổ. Ghi phong bì đầu tiên ở ô phía trên.</div>
+          <div class="hint">Bấm vào một dòng để xem chi tiết và xóa từng lần mừng.</div>
+        </section>
+      </div>
+
+      <div class="col">
+        <section class="card">
+          <div class="cardhead"><h2>Theo từng đám cưới</h2></div>
+          <div class="events" id="giftEventsList"></div>
+        </section>
+      </div>
+    </div>
+  </div>
 </div>
 <div class="toast" id="toast" hidden></div>
 
@@ -535,7 +633,7 @@ form.depform .w2 { grid-column: span 2 }
 (async () => {
   const $ = id => document.getElementById(id);
   const CATS = ["Ăn uống", "Đi lại", "Nhà ở & hóa đơn", "Điện thoại & mạng", "Mua sắm", "Giải trí", "Sức khỏe & bảo hiểm", "Học tập", "Con cái", "Gửi về gia đình", "Quà & hiếu hỉ", "Khác"];
-  const IN_CATS = ["Lương", "Thưởng", "Làm thêm (arubaito)", "Lãi tiết kiệm", "Khác"];
+  const IN_CATS = ["Lương", "Thưởng", "Làm thêm (arubaito)", "Lãi tiết kiệm", "Tiền mừng cưới", "Khác"];
   const SYM = { JPY: "¥", VND: "₫" };
   const OTHER = c => c === "JPY" ? "VND" : "JPY";
   const DEFAULT_RATE = 172;
@@ -586,7 +684,7 @@ form.depform .w2 { grid-column: span 2 }
 
   // ---------- Trạng thái ----------
   // M: dữ liệu thật của gia đình (đồng bộ). D: dữ liệu mẫu khi chưa thiết lập.
-  const M = { settings: null, accounts: {}, goals: {}, deposits: {}, tx: {}, rates: null };
+  const M = { settings: null, accounts: {}, goals: {}, deposits: {}, gifts: {}, tx: {}, rates: null };
   let D = null;
   const state = { loaded: false, view: "JPY", y: today.getFullYear(), m: today.getMonth() + 1, kind: "out", cur: "JPY", accTouched: false, chat: [], me: null, rateC: "vn" };
   const isDemo = () => !M.settings;
@@ -614,6 +712,13 @@ form.depform .w2 { grid-column: span 2 }
       deposits: arr([
         { id: "s1", bank: "LPBank", cur: "VND", amount: 200000000, rate: 7.2, term: 12, start: ymd(addMonths(ymd(today), -4)), mode: "roll" },
         { id: "s2", bank: "SBI新生銀行", cur: "JPY", amount: 1000000, rate: 1.25, term: 12, start: ymd(addMonths(ymd(today), -9)), mode: "roll" }
+      ]),
+      gifts: arr([
+        { id: "w1", dir: "in", name: "Nguyễn Thị Lan", group: "Bạn bè", event: "Cưới của mình", date: "2025-04-12", amount: 30000, cur: "JPY" },
+        { id: "w2", dir: "in", name: "Trần Văn Tuấn", group: "Đồng nghiệp", event: "Cưới của mình", date: "2025-04-12", amount: 20000, cur: "JPY" },
+        { id: "w3", dir: "in", name: "Cô Hoa", group: "Họ hàng ngoại", event: "Cưới của mình", date: "2025-04-12", amount: 2000000, cur: "VND", note: "Gửi qua mẹ" },
+        { id: "w4", dir: "in", name: "Anh Minh", group: "Bạn học", event: "Cưới của mình", date: "2025-04-12", amount: 1000000, cur: "VND" },
+        { id: "w5", dir: "out", name: "Trần Văn Tuấn", group: "Đồng nghiệp", event: "Cưới Tuấn", date: "2026-05-10", amount: 30000, cur: "JPY" }
       ]),
       tx: arr([
         { id: "d1", kind: "in", cat: "Lương", amount: 260000, cur: "JPY", acc: "a1", note: "Lương chồng", date: day(1), month: mo },
@@ -652,7 +757,7 @@ form.depform .w2 { grid-column: span 2 }
           setSync(!s.metadata.fromCache, s.metadata.fromCache ? "Đang ngoại tuyến · sẽ đồng bộ khi có mạng" : null);
           changed();
         }, onErr);
-        ["accounts", "goals", "deposits"].forEach(k => F.onSnapshot(col(k), q => { M[k] = toMap(q); changed(); }, onErr));
+        ["accounts", "goals", "deposits", "gifts"].forEach(k => F.onSnapshot(col(k), q => { M[k] = toMap(q); changed(); }, onErr));
         F.onSnapshot(F.doc(db, "ref", "rates"), s => { M.rates = s.exists() ? s.data() : null; renderRates(); if (!s.metadata.fromCache) syncRatesFile(); }, onErr);
         this.watchMonth();
       },
@@ -667,7 +772,7 @@ form.depform .w2 { grid-column: span 2 }
       setRates(o) { M.rates = o; return F.setDoc(F.doc(db, "ref", "rates"), clone(o)).catch(saveErr); },
       async allTx() { const q = await F.getDocs(col("tx")); return q.docs.map(d => ({ ...d.data(), id: d.id })); },
       async clearAll() {
-        for (const k of ["accounts", "goals", "deposits", "tx"]) {
+        for (const k of ["accounts", "goals", "deposits", "gifts", "tx"]) {
           const q = await F.getDocs(col(k));
           for (const d of q.docs) await F.deleteDoc(d.ref);
         }
@@ -675,21 +780,21 @@ form.depform .w2 { grid-column: span 2 }
     };
   }
   function localRepo() {
-    let blob = { settings: null, accounts: {}, goals: {}, deposits: {}, tx: {}, rates: null };
+    let blob = { settings: null, accounts: {}, goals: {}, deposits: {}, gifts: {}, tx: {}, rates: null };
     try { const v = localStorage.getItem(LKEY); if (v) blob = { ...blob, ...JSON.parse(v) }; } catch {}
     const persist = () => { try { localStorage.setItem(LKEY, JSON.stringify(blob)); } catch {} };
-    const sync = () => { M.settings = blob.settings; M.accounts = blob.accounts; M.goals = blob.goals; M.deposits = blob.deposits; M.rates = blob.rates;
+    const sync = () => { M.settings = blob.settings; M.accounts = blob.accounts; M.goals = blob.goals; M.deposits = blob.deposits; M.gifts = blob.gifts || {}; M.rates = blob.rates;
       const mo = mkey(state.y, state.m); M.tx = Object.fromEntries(Object.entries(blob.tx).filter(([, t]) => t.month === mo)); };
     return {
       mode: "local",
       start() { state.loaded = true; sync(); setSync(false, "Chế độ thử: dữ liệu chỉ lưu trên trình duyệt này (chưa cấu hình Firebase)."); changed(); renderRates(); syncRatesFile(); },
       watchMonth() { sync(); },
-      put(k, o) { blob[k][o.id] = o; persist(); sync(); },
+      put(k, o) { (blob[k] = blob[k] || {})[o.id] = o; persist(); sync(); },
       del(k, id) { delete blob[k][id]; persist(); sync(); },
       setSettings(o) { blob.settings = o; persist(); sync(); },
       setRates(o) { blob.rates = o; persist(); sync(); },
       async allTx() { return Object.values(blob.tx); },
-      async clearAll() { blob.accounts = {}; blob.goals = {}; blob.deposits = {}; blob.tx = {}; persist(); sync(); }
+      async clearAll() { blob.accounts = {}; blob.goals = {}; blob.deposits = {}; blob.gifts = {}; blob.tx = {}; persist(); sync(); }
     };
   }
   function saveErr(e) { console.error(e); toast(e?.code === "permission-denied" ? "Tài khoản này chưa được cấp quyền ghi vào sổ. Xem HUONG-DAN.md, mục “Thêm người dùng”." : "Không lưu được: " + (e?.message || e?.code || "lỗi")); }
@@ -725,7 +830,7 @@ form.depform .w2 { grid-column: span 2 }
   async function exportJson() {
     if (isDemo()) return demoToast();
     const data = { app: "so-thu-chi", version: 1, exportedAt: new Date().toISOString(), settings: M.settings,
-      accounts: Object.values(M.accounts), goals: Object.values(M.goals), deposits: Object.values(M.deposits),
+      accounts: Object.values(M.accounts), goals: Object.values(M.goals), deposits: Object.values(M.deposits), gifts: Object.values(M.gifts),
       tx: await repo.allTx(), rates: M.rates };
     download(`so-thu-chi-sao-luu-${ymd(today)}.json`, JSON.stringify(data, null, 2), "application/json");
     toast("Đã tải bản sao lưu. Hãy cất tệp này ở nơi an toàn.");
@@ -755,7 +860,7 @@ form.depform .w2 { grid-column: span 2 }
     $("importBtn").disabled = true; toast("Đang khôi phục, đừng đóng trang…");
     try {
       await repo.clearAll();
-      for (const k of ["accounts", "goals", "deposits"]) for (const o of (data[k] || [])) await repo.put(k, o);
+      for (const k of ["accounts", "goals", "deposits", "gifts"]) for (const o of (data[k] || [])) await repo.put(k, o);
       for (const t of data.tx) await repo.put("tx", { ...t, month: t.month || t.date.slice(0, 7) });
       if (data.rates) await repo.setRates(data.rates);
       await repo.setSettings(data.settings);
@@ -1027,6 +1132,7 @@ form.depform .w2 { grid-column: span 2 }
     }
 
     renderDeposits(c);
+    renderGifts();
     renderCalc();
   }
 
@@ -1371,15 +1477,215 @@ form.depform .w2 { grid-column: span 2 }
     await repo.setSettings(st); state.accTouched = false; render(); $("settings").hidden = true; toast("Đã lưu thiết lập");
   };
 
+  // ---------- Sổ mừng cưới ----------
+  const normName = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase().trim().replace(/\s+/g, " ");
+  state.giftDir = "in"; state.giftCur = "JPY"; state.giftFilter = "all";
+  // Gom các lần mừng theo người (tên không phân biệt hoa thường, có dấu hay không)
+  function giftPeople() {
+    const map = {};
+    list("gifts").forEach(g => {
+      const k = normName(g.name); if (!k) return;
+      const p = map[k] || (map[k] = { key: k, name: g.name, group: g.group, ins: [], outs: [], last: "" });
+      (g.dir === "in" ? p.ins : p.outs).push(g);
+      if ((g.date || "") >= p.last) { p.last = g.date || ""; p.name = g.name; p.group = g.group || p.group; }
+    });
+    return Object.values(map).map(p => {
+      const V = state.view;
+      p.ins.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+      p.outs.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+      p.inV = p.ins.reduce((a, g) => a + conv(g.amount, g.cur, V), 0);
+      p.outV = p.outs.reduce((a, g) => a + conv(g.amount, g.cur, V), 0);
+      const lastIn = p.ins[0], lastOut = p.outs[0];
+      p.status = !p.ins.length ? "ahead" : !p.outs.length ? "owe" : (lastOut.date || "") >= (lastIn.date || "") && p.outV >= p.inV * 0.95 ? "paid" : (lastOut.date || "") >= (lastIn.date || "") ? "less" : "owe";
+      return p;
+    });
+  }
+  const GIFT_STATUS = { owe: ["tight", "Chưa mừng lại"], paid: ["ok", "Đã mừng lại"], less: ["no", "Mừng lại ít hơn"], ahead: ["neutral", "Mình mừng trước"] };
+  const sumBy = (arr, cur) => arr.filter(g => g.cur === cur).reduce((a, g) => a + g.amount, 0);
+  const mixedText = arr => ["JPY", "VND"].map(c => sumBy(arr, c)).map((v, i) => v ? fmt(v, i ? "VND" : "JPY") : "").filter(Boolean).join(" + ") || "—";
+  // Gợi ý số tiền mừng lại: ít nhất bằng lần họ mừng gần nhất; lâu rồi thì thêm khoảng 10% (làm tròn)
+  function suggestFor(p) {
+    const g = p.ins[0]; if (!g) return null;
+    const years = g.date ? (today - new Date(g.date)) / (365.25 * 86400000) : 0;
+    const step = g.cur === "JPY" ? 10000 : 100000;
+    const up = Math.ceil(g.amount * 1.1 / step) * step;
+    return { g, years, base: g.amount, up: years >= 2 && up > g.amount ? up : null };
+  }
+  function giftSummary() {
+    const ps = giftPeople(); if (!ps.length) return "Sổ mừng cưới: chưa có.";
+    const owe = ps.filter(p => p.status === "owe");
+    return `Sổ mừng cưới: ${ps.length} người; đã nhận ${mixedText(list("gifts").filter(g => g.dir === "in"))}, đã đi mừng ${mixedText(list("gifts").filter(g => g.dir === "out"))}; ${owe.length} người chưa mừng lại` +
+      (owe.length ? ` (vd: ${owe.slice(0, 8).map(p => `${p.name} mừng ${mixedText(p.ins)}`).join("; ")})` : "") + ".";
+  }
+
+  function renderGifts() {
+    const ps = giftPeople(), all = list("gifts");
+    const ins = all.filter(g => g.dir === "in"), outs = all.filter(g => g.dir === "out");
+    const V = state.view;
+    $("gIn").textContent = fmt(ins.reduce((a, g) => a + conv(g.amount, g.cur, V), 0));
+    $("gInSub").textContent = ins.length ? mixedText(ins) : "";
+    $("gOut").textContent = fmt(outs.reduce((a, g) => a + conv(g.amount, g.cur, V), 0));
+    $("gOutSub").textContent = outs.length ? mixedText(outs) : "";
+    const owe = ps.filter(p => p.status === "owe");
+    $("gOwe").textContent = owe.length + " người";
+    $("gOweSub").textContent = owe.length ? "Tổng họ đã mừng: " + short(owe.reduce((a, p) => a + p.inV, 0)) : "";
+    $("giftCount").textContent = ps.length ? `${ps.length} người · ${all.length} lần mừng` : "";
+    document.querySelectorAll("#giftSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.dir === state.giftDir));
+    document.querySelectorAll("#giftCurSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.cur === state.giftCur));
+    document.querySelectorAll("#giftFilter button").forEach(b => b.setAttribute("aria-pressed", b.dataset.f === state.giftFilter));
+    $("wNameLabel").textContent = state.giftDir === "in" ? "Tên người mừng" : "Mừng cưới ai";
+
+    // bảng theo người
+    const f = state.giftFilter;
+    const rows = ps.filter(p => f === "all" || (f === "owe" ? p.status === "owe" : f === "in" ? p.ins.length : p.outs.length))
+      .sort((a, b) => ((b.status === "owe") - (a.status === "owe")) || (b.inV - a.inV) || a.name.localeCompare(b.name));
+    const body = $("giftBody"); body.replaceChildren();
+    $("giftEmpty").hidden = rows.length > 0; body.parentElement.hidden = !rows.length;
+    if (!rows.length && ps.length) $("giftEmpty").textContent = "Không có ai trong mục này.";
+    else $("giftEmpty").textContent = "Chưa có ai trong sổ. Ghi phong bì đầu tiên ở ô phía trên.";
+    rows.forEach(p => {
+      const tr = document.createElement("tr"); tr.className = "clickable"; tr.tabIndex = 0;
+      const td = (t, cls) => { const x = document.createElement("td"); if (cls) x.className = cls; x.textContent = t; return x; };
+      const [cls, label] = GIFT_STATUS[p.status];
+      const st = document.createElement("td"); const chip = document.createElement("span"); chip.className = "status " + cls; chip.textContent = label; st.append(chip);
+      tr.append(td(p.name), td(p.group || ""), td(p.ins.length ? mixedText(p.ins) : "—", "r num"), td(p.outs.length ? mixedText(p.outs) : "—", "r num"), st);
+      const open = () => { $("wSearch").value = p.name; renderLookup(); $("wSearch").scrollIntoView({ behavior: "smooth", block: "center" }); };
+      tr.onclick = open; tr.onkeydown = e => { if (e.key === "Enter") open(); };
+      body.append(tr);
+    });
+
+    // theo đám cưới
+    const ev = {};
+    all.forEach(g => { const k = (g.event || "Không ghi tên đám cưới").trim(); const e = ev[k] || (ev[k] = { name: k, items: [], last: "" }); e.items.push(g); if ((g.date || "") > e.last) e.last = g.date || ""; });
+    const evBox = $("giftEventsList"); evBox.replaceChildren();
+    const evs = Object.values(ev).sort((a, b) => b.last.localeCompare(a.last));
+    if (!evs.length) { const e = document.createElement("div"); e.className = "empty"; e.textContent = "Ghi tên đám cưới khi nhập để xem tổng tiền mừng của từng đám."; evBox.append(e); }
+    evs.forEach(e => {
+      const row = document.createElement("div"); row.className = "event";
+      const nm = document.createElement("div"); nm.className = "nm"; nm.textContent = e.name;
+      const v = document.createElement("div"); v.className = "num"; v.textContent = mixedText(e.items);
+      const sub = document.createElement("div"); sub.className = "sub";
+      const nIn = e.items.filter(g => g.dir === "in").length, nOut = e.items.length - nIn;
+      sub.textContent = [nIn && `${nIn} người mừng`, nOut && `mình đi mừng ${nOut} lần`, e.last && "ngày " + dmy(e.last)].filter(Boolean).join(" · ");
+      row.append(nm, v, sub); evBox.append(row);
+    });
+
+    // gợi ý nhập
+    const dl = $("giftNames"); dl.replaceChildren(...ps.map(p => opt(p.name, "")));
+    const de = $("giftEvents"); de.replaceChildren(...evs.map(e => opt(e.name, "")));
+    const prevAcc = $("wAcc").value;
+    $("wAcc").replaceChildren(opt("", "Không gắn tài khoản"), ...list("accounts").map(a => opt(a.id, `${a.name} (${SYM[a.cur]})`)));
+    if ([...$("wAcc").options].some(o => o.value === prevAcc)) $("wAcc").value = prevAcc;
+    updateGiftRoute();
+    renderLookup();
+  }
+
+  function updateGiftRoute() {
+    const r = $("giftRoute");
+    const p = giftPeople().find(x => x.key === normName($("wName").value));
+    const parts = [];
+    if (p && state.giftDir === "out") {
+      const sg = suggestFor(p);
+      if (sg) parts.push(`${p.name} đã mừng bạn ${fmt(sg.base, sg.g.cur)}${sg.g.event ? " (" + sg.g.event + ")" : ""}. Nên mừng lại ít nhất ${fmt(sg.base, sg.g.cur)}${sg.up ? `, hoặc khoảng ${fmt(sg.up, sg.g.cur)} vì đã ${Math.floor(sg.years)} năm` : ""}.`);
+    } else if (p) parts.push(`${p.name} đã có trong sổ (${p.ins.length} lần mừng mình, ${p.outs.length} lần mình mừng).`);
+    const a = list("accounts").find(x => x.id === $("wAcc").value);
+    if (a) parts.push(`${state.giftDir === "in" ? "Cộng vào" : "Trừ từ"} ${a.name} và ghi vào thu chi tháng.`);
+    r.textContent = parts.join(" ");
+  }
+
+  function renderLookup() {
+    const q = normName($("wSearch").value);
+    const box = $("wLookup"); box.replaceChildren();
+    if (!q) return;
+    const hits = giftPeople().filter(p => p.key.includes(q)).sort((a, b) => (a.key.startsWith(q) ? 0 : 1) - (b.key.startsWith(q) ? 0 : 1)).slice(0, 8);
+    if (!hits.length) { const e = document.createElement("div"); e.className = "empty"; e.textContent = `Chưa có ai tên “${$("wSearch").value.trim()}” trong sổ: người này chưa từng mừng cưới bạn.`; box.append(e); return; }
+    hits.forEach(p => {
+      const el = document.createElement("div"); el.className = "hit";
+      const top = document.createElement("div"); top.className = "top";
+      const nm = document.createElement("span"); nm.className = "name"; nm.textContent = p.name + (p.group ? " · " + p.group : "");
+      const [cls, label] = GIFT_STATUS[p.status];
+      const chip = document.createElement("span"); chip.className = "status " + cls; chip.textContent = label;
+      top.append(nm, chip); el.append(top);
+      const sg = suggestFor(p);
+      if (sg) {
+        const s = document.createElement("div"); s.className = "suggest";
+        s.append("Họ mừng bạn ");
+        const b1 = document.createElement("b"); b1.textContent = fmt(sg.base, sg.g.cur); s.append(b1);
+        s.append(`${sg.g.event ? " ở " + sg.g.event : ""}${sg.g.date ? " (" + dmy(sg.g.date) + ")" : ""}. Nên mừng lại ít nhất `);
+        const b2 = document.createElement("b"); b2.textContent = fmt(sg.base, sg.g.cur); s.append(b2);
+        if (sg.up) { s.append(`, hoặc khoảng `); const b3 = document.createElement("b"); b3.textContent = fmt(sg.up, sg.g.cur); s.append(b3, ` vì đã ${Math.floor(sg.years)} năm`); }
+        s.append(".");
+        el.append(s);
+      }
+      const ul = document.createElement("ul");
+      [...p.ins, ...p.outs].sort((a, b) => (b.date || "").localeCompare(a.date || "")).forEach(g => {
+        const li = document.createElement("li");
+        const t = document.createElement("span");
+        t.textContent = `${g.date ? dmy(g.date) : "—"} · ${g.dir === "in" ? "Họ mừng mình" : "Mình mừng họ"}${g.event ? " · " + g.event : ""}${g.note ? " · " + g.note : ""}`;
+        const right = document.createElement("span"); right.style.display = "flex"; right.style.gap = "6px"; right.style.alignItems = "center";
+        const amt = document.createElement("span"); amt.className = "amt" + (g.dir === "in" ? " in" : ""); amt.textContent = (g.dir === "in" ? "+" : "−") + fmt(g.amount, g.cur);
+        const del = document.createElement("button"); del.className = "ghost small"; del.textContent = "Xóa"; del.type = "button";
+        del.onclick = () => confirmClick(del, "Xóa", () => removeGift(g.id));
+        right.append(amt, del); li.append(t, right); ul.append(li);
+      });
+      el.append(ul);
+      if (p.ins.length) {
+        const act = document.createElement("button"); act.className = "small"; act.type = "button"; act.textContent = "Ghi mình đi mừng người này";
+        act.onclick = () => { state.giftDir = "out"; $("wName").value = p.name; $("wGroup").value = p.group || $("wGroup").value; if (sg) { state.giftCur = sg.g.cur; $("wAmt").value = sg.g.cur === "JPY" ? group(sg.up || sg.base) : short(sg.up || sg.base, "VND").replace(" ₫", ""); } renderGifts(); $("wAmt").focus(); $("giftForm").scrollIntoView({ behavior: "smooth", block: "center" }); };
+        el.append(act);
+      }
+      box.append(el);
+    });
+  }
+
+  async function removeGift(id) {
+    if (isDemo()) return demoToast();
+    const g = M.gifts[id]; if (!g) return;
+    if (g.txId) {
+      repo.del("tx", g.txId);
+      if (g.acc) bump(g.acc, (g.dir === "in" ? -1 : 1) * g.amount, g.cur);
+    }
+    repo.del("gifts", id); render(); toast("Đã xóa lần mừng của " + g.name);
+  }
+
+  document.querySelectorAll("#giftSeg button").forEach(b => b.onclick = () => { state.giftDir = b.dataset.dir; renderGifts(); });
+  document.querySelectorAll("#giftCurSeg button").forEach(b => b.onclick = () => { state.giftCur = b.dataset.cur; renderGifts(); });
+  document.querySelectorAll("#giftFilter button").forEach(b => b.onclick = () => { state.giftFilter = b.dataset.f; renderGifts(); });
+  $("wSearch").oninput = renderLookup;
+  $("wName").oninput = updateGiftRoute;
+  $("wAcc").onchange = () => { const a = list("accounts").find(x => x.id === $("wAcc").value); if (a) state.giftCur = a.cur; renderGifts(); };
+  $("wDate").value = ymd(today);
+  try { const ev = localStorage.getItem("sothuchi:lastEvent"); if (ev) $("wEvent").value = ev; } catch {}
+  $("giftForm").onsubmit = async e => {
+    e.preventDefault();
+    const amount = parseMoney($("wAmt").value), name = $("wName").value.trim();
+    if (!name) { toast("Nhập tên người"); return; }
+    if (!(amount > 0)) { toast("Số tiền chưa hợp lệ. Ví dụ: 3man, 30000, 500k, 2tr"); return; }
+    if (!await ensureReal()) return;
+    const g = { id: uid(), dir: state.giftDir, name, group: $("wGroup").value, event: $("wEvent").value.trim(), date: $("wDate").value || ymd(today), amount, cur: state.giftCur, note: $("wNote").value.trim() };
+    if (state.me) { g.by = state.me; g.byName = state.meName; }
+    const acc = $("wAcc").value;
+    if (acc) {
+      g.acc = acc; g.txId = uid();
+      await addTx({ id: g.txId, kind: g.dir === "in" ? "in" : "out", cat: g.dir === "in" ? "Tiền mừng cưới" : "Quà & hiếu hỉ", amount, cur: g.cur, acc, note: (g.dir === "in" ? "Mừng cưới từ " : "Mừng cưới ") + name, date: g.date });
+    }
+    repo.put("gifts", g);
+    try { if (g.event) localStorage.setItem("sothuchi:lastEvent", g.event); } catch {}
+    toast(`Đã lưu: ${name} ${g.dir === "in" ? "mừng" : "được mình mừng"} ${fmt(amount, g.cur)}`);
+    $("wName").value = ""; $("wAmt").value = ""; $("wNote").value = "";
+    render(); showTab("gift"); $("wName").focus();
+  };
+
   // ---------- Tab ----------
   function showTab(t) {
-    const save = t === "save";
-    $("pMain").hidden = save; $("pSave").hidden = !save;
-    $("tabMain").setAttribute("aria-selected", !save); $("tabSave").setAttribute("aria-selected", save);
+    const tabs = { main: ["tabMain", "pMain"], save: ["tabSave", "pSave"], gift: ["tabGift", "pGift"] };
+    Object.entries(tabs).forEach(([k, [tb, pn]]) => { $(pn).hidden = k !== t; $(tb).setAttribute("aria-selected", k === t); });
   }
   $("tabMain").onclick = () => showTab("main");
   $("tabSave").onclick = () => showTab("save");
+  $("tabGift").onclick = () => showTab("gift");
   if (location.hash === "#tietkiem") showTab("save");
+  if (location.hash === "#mungcuoi") showTab("gift");
 
   // ---------- Cố vấn AI (DeepSeek) ----------
   const CFG = window.SO_THU_CHI_CONFIG || {};
@@ -1400,6 +1706,7 @@ form.depform .w2 { grid-column: span 2 }
       `Đã chi: ${fmt(c.spent)}. Đã để dành trong tháng: ${fmt(c.saved)}. Còn lại: ${fmt(c.left)}.`,
       `Tài khoản: ` + (list("accounts").map(a => `${a.name} ${fmt(a.balance || 0, a.cur)}`).join("; ") || "chưa có") + `. Tổng bên Nhật ${fmt(c.tot.JPY, "JPY")}, bên Việt Nam ${fmt(c.tot.VND, "VND")}.`,
       `Sổ tiết kiệm: ` + (list("deposits").map(d => `${d.bank} ${fmt(d.amount, d.cur)} lãi ${d.rate}%/năm kỳ hạn ${d.term} tháng, gửi ${d.start}, hiện ≈ ${fmt(depValue(d).value, d.cur)}`).join("; ") || "chưa có"),
+      giftSummary(),
       `Chi theo danh mục: ` + (Object.entries(c.byCat).map(([k, v]) => `${k} ${fmt(v)}${c.catLimit(k) ? ` (hạn mức ${fmt(c.catLimit(k))})` : ""}`).join("; ") || "chưa có"),
       `Món đồ muốn mua: ` + (c.goals.map(g => `${g.name}: giá ${fmt(g.price, g.cur)}, đã để dành ${fmt(g.saved || 0, g.cur)}, hạn tháng ${g.by}, cần ${fmt(g.perMonth, g.cur)}/tháng`).join("; ") || "chưa có"),
       `Giao dịch gần đây: ` + (list("tx").sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30).map(t => `${t.date} ${{ out: "chi", in: "thu", save: "tiết kiệm", transfer: "chuyển tiền" }[t.kind]} ${fmt(t.amount, txCur(t))} [${t.cat}] ${t.note || ""}`).join(" | ") || "chưa có"),
@@ -1471,6 +1778,11 @@ ${context()}`;
   };
 
   // ---------- Khởi động ----------
+  // Chuyển sang địa chỉ chính (cùng tên miền với trang đăng nhập Firebase) để đăng nhập chạy được trên điện thoại
+  if (CFG.canonicalHost && location.protocol === "https:" && location.hostname !== CFG.canonicalHost && /(\.github\.io|\.web\.app)$/.test(location.hostname)) {
+    location.replace("https://" + CFG.canonicalHost + "/" + location.hash);
+    return;
+  }
   try { const v = localStorage.getItem("sothuchi:view"); if (v === "JPY" || v === "VND") state.view = v; } catch {}
   render(); renderRates();
   function setAiState() {
@@ -1500,7 +1812,17 @@ ${context()}`;
   fb = { app, db: fdb, auth, F: fsM, user: null };
   const provider = new authM.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: "select_account" });
+  // Điện thoại và app mở từ màn hình chính: chuyển trang sang Google rồi quay lại (cửa sổ bật lên hay bị chặn).
+  // Máy tính: dùng cửa sổ bật lên, bị chặn thì chuyển sang cách chuyển trang.
+  const useRedirect = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+    || window.matchMedia?.("(display-mode: standalone)").matches || navigator.standalone === true;
+  authM.getRedirectResult(auth).catch(e => {
+    console.warn(e);
+    $("loginScreen").hidden = false;
+    $("loginMsg").textContent = "Đăng nhập chưa thành công (" + (e.code || e.message) + "). Thử lại, hoặc mở trang bằng Safari/Chrome thay vì trình duyệt trong Zalo, Facebook, LINE.";
+  });
   $("loginBtn").onclick = async () => {
+    if (useRedirect) { $("loginBtn").disabled = true; $("loginBtn").textContent = "Đang chuyển sang Google…"; return authM.signInWithRedirect(auth, provider); }
     try { await authM.signInWithPopup(auth, provider); }
     catch (e) {
       if (["auth/popup-blocked", "auth/operation-not-supported-in-this-environment", "auth/cancelled-popup-request"].includes(e.code)) authM.signInWithRedirect(auth, provider);

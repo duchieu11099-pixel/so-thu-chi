@@ -31,7 +31,7 @@ Gói miễn phí (Spark) của Firestore: 1 GB dữ liệu, 50.000 lượt đọ
 
 ## Bước 2. Mở app
 
-- Link: **https://duchieu11099-pixel.github.io/so-thu-chi/**
+- Link: **https://so-thu-chi-ec435.firebaseapp.com** (link GitHub cũ tự chuyển sang đây; dùng chung tên miền với trang đăng nhập nên đăng nhập trên điện thoại mới chạy)
 - Bấm **Đăng nhập bằng Google** bằng email có trong quy tắc bảo mật.
 - Lần đầu: bấm **Bắt đầu với số liệu của tôi**, vào **Thiết lập** chọn tiền yên, nhập thu nhập và giới hạn chi tiêu, rồi thêm tài khoản ngân hàng.
 - Trên điện thoại: mở link bằng Safari (iPhone) hoặc Chrome (Android), chọn **Thêm vào màn hình chính** để có biểu tượng như app.
@@ -73,6 +73,14 @@ API key DeepSeek **không bao giờ** được dán vào app, vào chat hay vào
 Chi phí DeepSeek tính theo lượt hỏi và rất rẻ (mỗi câu hỏi tốn khoảng vài phần trăm yên). Theo dõi số dư tại https://platform.deepseek.com.
 
 ---
+
+## Đưa bản mới lên
+
+```bash
+npx -y firebase-tools@13 deploy --only hosting,firestore:rules
+```
+
+Lệnh này đăng thư mục `docs/` và quy tắc trong `private/firestore.rules` (có email thật, không lên GitHub). Sau đó commit và push để lưu mã nguồn.
 
 ## Sao lưu
 

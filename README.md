@@ -1,8 +1,8 @@
 # Sổ Thu Chi
 
-Sổ tài chính gia đình dùng chung cho hai vợ chồng người Việt sống ở Nhật: thu chi bằng yên (¥) và đồng (₫), tài khoản ngân hàng Nhật và Việt Nam, sổ tiết kiệm, bảng tính lãi, bảng lãi suất ngân hàng, cảnh báo tiêu quá đà và cố vấn AI (DeepSeek).
+Sổ tài chính gia đình dùng chung cho hai vợ chồng người Việt sống ở Nhật: thu chi bằng yên (¥) và đồng (₫), tài khoản ngân hàng Nhật và Việt Nam, sổ tiết kiệm, bảng tính lãi, bảng lãi suất ngân hàng, sổ mừng cưới (ai mừng mình bao nhiêu, gợi ý số tiền mừng lại), cảnh báo tiêu quá đà và cố vấn AI (DeepSeek).
 
-**Link app:** https://duchieu11099-pixel.github.io/so-thu-chi/
+**Link app:** https://so-thu-chi-ec435.firebaseapp.com (Firebase Hosting; link GitHub Pages cũ https://duchieu11099-pixel.github.io/so-thu-chi/ tự chuyển sang đây)
 
 **Cài đặt lần đầu:** xem [HUONG-DAN.md](HUONG-DAN.md).
 
@@ -10,10 +10,11 @@ Sổ tài chính gia đình dùng chung cho hai vợ chồng người Việt s�
 
 | Đường dẫn | Nội dung |
 |---|---|
-| `docs/index.html` | App web (HTML, CSS và JavaScript trong một tệp), được GitHub Pages đăng ở link trên |
+| `docs/index.html` | App web (HTML, CSS và JavaScript trong một tệp), đăng lên Firebase Hosting |
 | `docs/config.js` | Cấu hình Firebase và địa chỉ proxy AI (không chứa mật khẩu) |
 | `docs/rates.json` | Bảng lãi suất ngân hàng tham khảo |
 | `docs/manifest.webmanifest`, `docs/icon.svg` | Để cài app lên màn hình chính điện thoại |
+| `firebase.json`, `.firebaserc` | Cấu hình Firebase Hosting (đăng `docs/`) và quy tắc Firestore (`private/firestore.rules`) |
 | `worker/` | Proxy DeepSeek chạy trên Cloudflare Worker (giữ API key, kiểm tra đăng nhập) |
 | `firestore.rules` | Quy tắc bảo mật Firestore: chỉ email trong danh sách được đọc/ghi |
 | `so-thu-chi.html` | Bản cũ chạy trên Claude Artifact (https://claude.ai/artifact/FnMzNaNGG2Q3WiaQxbSYSR), giữ lại để tham khảo |
@@ -35,6 +36,7 @@ Sổ tài chính gia đình dùng chung cho hai vợ chồng người Việt s�
 | `hh/main/tx/{id}` | Giao dịch: `kind` (out/in/save/transfer), `amount`, `cur`, `acc`, `to`, `amount2`, `cat`, `note`, `date`, `month`, `by`, `byName`, `at` |
 | `hh/main/goals/{id}` | Món đồ muốn mua: `name`, `price`, `cur`, `saved`, `by` |
 | `hh/main/deposits/{id}` | Sổ tiết kiệm: `bank`, `cur`, `amount`, `rate`, `term`, `start`, `mode`, `from` |
+| `hh/main/gifts/{id}` | Mừng cưới: `dir` (in = họ mừng mình, out = mình đi mừng), `name`, `group`, `event`, `date`, `amount`, `cur`, `note`, `acc`, `txId` |
 | `ref/rates` | Bảng lãi suất (tự nạp từ `docs/rates.json` khi tệp mới hơn) |
 
 ## Chạy thử trên máy

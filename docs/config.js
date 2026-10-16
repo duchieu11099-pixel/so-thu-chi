@@ -11,6 +11,9 @@ window.SO_THU_CHI_CONFIG = {
     messagingSenderId: "843441554185",
     appId: "1:843441554185:web:3cd6f1a77e34ab8d06c9d8"
   },
+  // Địa chỉ chính của app (Firebase Hosting, cùng tên miền với authDomain để đăng nhập chạy trên điện thoại).
+  // Mở app từ github.io hoặc web.app sẽ tự chuyển sang địa chỉ này.
+  canonicalHost: "so-thu-chi-ec435.firebaseapp.com",
   // Địa chỉ proxy DeepSeek (Cloudflare Worker).
   // Để trống "" nếu chưa cài: app vẫn chạy, chỉ tắt phần cố vấn AI.
   aiProxyUrl: "https://so-thu-chi-ai.duchieu11099.workers.dev"

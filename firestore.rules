@@ -1,0 +1,26 @@
+rules_version = '2';
+
+// Quy tắc bảo mật cho Sổ Thu Chi.
+// Chỉ những email trong danh sách dưới đây (đăng nhập Google, email đã xác minh)
+// mới được đọc và ghi dữ liệu. Ai khác, kể cả người biết link app, đều bị chặn.
+//
+// Cách dùng: thay hai email mẫu bằng email Google của bạn và vợ/chồng,
+// rồi dán toàn bộ tệp này vào Firebase console > Firestore Database > Rules > Publish.
+// Muốn thêm người: thêm email vào danh sách, cách nhau bằng dấu phẩy.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isFamily() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in [
+          'email-cua-ban@gmail.com',
+          'email-cua-vo@gmail.com'
+        ];
+    }
+
+    match /{document=**} {
+      allow read, write: if isFamily();
+    }
+  }
+}

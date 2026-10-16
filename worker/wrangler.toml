@@ -1,0 +1,14 @@
+name = "so-thu-chi-ai"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+
+[vars]
+# Mã dự án Firebase (Project ID), xem trong Firebase console > Project settings
+FIREBASE_PROJECT_ID = "DIEN_PROJECT_ID"
+# Địa chỉ trang app được phép gọi proxy (GitHub Pages)
+ALLOWED_ORIGIN = "https://duchieu11099-pixel.github.io"
+DEEPSEEK_MODEL = "deepseek-chat"
+
+# Hai giá trị bí mật, KHÔNG ghi vào tệp này, đặt bằng lệnh:
+#   npx wrangler secret put DEEPSEEK_API_KEY
+#   npx wrangler secret put ALLOWED_EMAILS   (vd: email-chong@gmail.com,email-vo@gmail.com)

@@ -1,0 +1,14 @@
+{
+  "name": "Sổ Thu Chi",
+  "short_name": "Thu Chi",
+  "description": "Sổ tài chính gia đình: thu chi bằng yên và đồng, tài khoản Nhật và Việt Nam, tiết kiệm và cố vấn AI.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F3F5F2",
+  "theme_color": "#0E7358",
+  "lang": "vi",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

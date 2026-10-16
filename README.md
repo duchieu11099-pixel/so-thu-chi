@@ -1,42 +1,46 @@
 # Sổ Thu Chi
 
-Sổ tài chính gia đình dùng chung (hai vợ chồng), cho người Việt sống ở Nhật: thu chi bằng yên (¥) và đồng (₫), tài khoản ngân hàng Nhật và Việt Nam, sổ tiết kiệm, bảng tính lãi, bảng lãi suất ngân hàng và cố vấn AI (Claude).
+Sổ tài chính gia đình dùng chung cho hai vợ chồng người Việt sống ở Nhật: thu chi bằng yên (¥) và đồng (₫), tài khoản ngân hàng Nhật và Việt Nam, sổ tiết kiệm, bảng tính lãi, bảng lãi suất ngân hàng, cảnh báo tiêu quá đà và cố vấn AI (DeepSeek).
 
-**Link dùng app:** https://claude.ai/artifact/FnMzNaNGG2Q3WiaQxbSYSR
+**Link app:** https://duchieu11099-pixel.github.io/so-thu-chi/
 
-## Tệp
+**Cài đặt lần đầu:** xem [HUONG-DAN.md](HUONG-DAN.md).
 
-- `so-thu-chi.html`: toàn bộ app (HTML, CSS và JavaScript trong một tệp). Đây là bản được xuất bản lên link trên.
+## Cấu trúc dự án
+
+| Đường dẫn | Nội dung |
+|---|---|
+| `docs/index.html` | App web (HTML, CSS và JavaScript trong một tệp), được GitHub Pages đăng ở link trên |
+| `docs/config.js` | Cấu hình Firebase và địa chỉ proxy AI (không chứa mật khẩu) |
+| `docs/rates.json` | Bảng lãi suất ngân hàng tham khảo |
+| `docs/manifest.webmanifest`, `docs/icon.svg` | Để cài app lên màn hình chính điện thoại |
+| `worker/` | Proxy DeepSeek chạy trên Cloudflare Worker (giữ API key, kiểm tra đăng nhập) |
+| `firestore.rules` | Quy tắc bảo mật Firestore: chỉ email trong danh sách được đọc/ghi |
+| `so-thu-chi.html` | Bản cũ chạy trên Claude Artifact (https://claude.ai/artifact/FnMzNaNGG2Q3WiaQxbSYSR), giữ lại để tham khảo |
+| `private/` | Tệp riêng tư (quy tắc có email thật, dữ liệu xuất), **không đưa lên git** |
 
 ## Cách app chạy
 
-App là một Claude Artifact. Khi mở trên claude.ai, trang được cấp ba quyền:
+- **Đăng nhập** bằng Google qua Firebase Authentication.
+- **Dữ liệu** nằm trong Firestore, đồng bộ trực tiếp (`onSnapshot`) và có lưu tạm khi mất mạng. Không cấu hình Firebase thì app tự chuyển sang chế độ thử, lưu trong `localStorage`.
+- **Cố vấn AI**: trang gửi câu hỏi kèm Firebase ID token tới proxy. Proxy kiểm tra token và email rồi gọi DeepSeek (`deepseek-chat`, dạng stream) bằng API key đặt trong secret của Cloudflare.
+- **Gợi ý tự động** (vượt ngân sách, tốc độ chi, tiền cần để dành cho mục tiêu, sổ sắp đáo hạn, bảng tính lãi) được tính ngay trong trang, không cần AI.
 
-- `db`: cơ sở dữ liệu dùng chung, đồng bộ trực tiếp giữa mọi người được mời.
-- `user`: biết ai đang xem, để ghi "nhập bởi" cho từng giao dịch.
-- `sample`: hỏi Claude, dùng cho cố vấn AI và gợi ý nơi gửi tiết kiệm.
-
-Trang không gọi được API bên ngoài (không DeepSeek, OpenAI, API ngân hàng hay tỷ giá) vì artifact chặn mọi kết nối ra ngoài. Tỷ giá ¥/₫ do người dùng tự nhập.
-
-Mở tệp HTML trực tiếp trên máy (không qua claude.ai) thì app vẫn chạy, nhưng dữ liệu chỉ lưu trong trình duyệt đó và không có AI hay bảng lãi suất.
-
-### Cấu trúc dữ liệu (db)
+### Dữ liệu trong Firestore
 
 | Đường dẫn | Nội dung |
 |---|---|
 | `hh/main` | Thiết lập: `cur`, `income`, `limit`, `rate` (₫ cho 1 ¥), `catLimits`, `defAcc` |
-| `hh/main/accounts/<id>` | Tài khoản: `name`, `cur`, `balance` |
-| `hh/main/tx/<id>` | Giao dịch: `kind` (out/in/save/transfer), `amount`, `cur`, `acc`, `to`, `amount2`, `cat`, `note`, `date`, `month`, `by`, `at` |
-| `hh/main/goals/<id>` | Món đồ muốn mua: `name`, `price`, `cur`, `saved`, `by` |
-| `hh/main/deposits/<id>` | Sổ tiết kiệm: `bank`, `cur`, `amount`, `rate`, `term`, `start`, `mode`, `from` |
-| `ref/rates` | Bảng lãi suất tham khảo (chỉ chủ sổ ghi được, Claude cập nhật) |
+| `hh/main/accounts/{id}` | Tài khoản: `name`, `cur`, `balance` |
+| `hh/main/tx/{id}` | Giao dịch: `kind` (out/in/save/transfer), `amount`, `cur`, `acc`, `to`, `amount2`, `cat`, `note`, `date`, `month`, `by`, `byName`, `at` |
+| `hh/main/goals/{id}` | Món đồ muốn mua: `name`, `price`, `cur`, `saved`, `by` |
+| `hh/main/deposits/{id}` | Sổ tiết kiệm: `bank`, `cur`, `amount`, `rate`, `term`, `start`, `mode`, `from` |
+| `ref/rates` | Bảng lãi suất (tự nạp từ `docs/rates.json` khi tệp mới hơn) |
 
-Quyền: chỉ người được mời với quyền Contributor/Editor mới đọc và ghi được; người xem qua link không thấy số liệu.
+## Chạy thử trên máy
 
-## Sửa và cập nhật
+```bash
+python3 -m http.server 8123 --directory docs
+```
 
-1. Mở dự án này trong Claude Code, nhờ thêm tính năng (sửa `so-thu-chi.html`).
-2. Claude xuất bản lại lên cùng link ở trên; dữ liệu trong db được giữ nguyên.
-3. Commit thay đổi vào git.
-
-Muốn cập nhật bảng lãi suất: nhắn Claude "cập nhật lãi suất ngân hàng", Claude sẽ tra và ghi lại `ref/rates`.
+Rồi mở http://localhost:8123.

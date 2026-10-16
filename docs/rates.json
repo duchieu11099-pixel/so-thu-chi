@@ -1,0 +1,228 @@
+{
+  "updated": "2026-10-16",
+  "vn": [
+    {
+      "bank": "Cake by VPBank",
+      "m12": 7.4,
+      "m6": 7.2,
+      "note": "Gửi online qua app"
+    },
+    {
+      "bank": "LPBank",
+      "m12": 7.2,
+      "m6": 7,
+      "note": "Gửi online"
+    },
+    {
+      "bank": "Bac A Bank",
+      "m12": 7.1,
+      "m6": 7.05
+    },
+    {
+      "bank": "VPBank",
+      "m12": 7.1
+    },
+    {
+      "bank": "PGBank",
+      "m12": 7,
+      "m6": 6.9
+    },
+    {
+      "bank": "VIB",
+      "m12": 7
+    },
+    {
+      "bank": "OCB",
+      "m12": 7,
+      "note": "Nguồn khác ghi 6,7%"
+    },
+    {
+      "bank": "BVBank",
+      "m12": 6.9,
+      "m6": 6.7
+    },
+    {
+      "bank": "BIDV",
+      "m12": 6.8,
+      "m6": 6.6,
+      "note": "Gửi online; tại quầy thấp hơn"
+    },
+    {
+      "bank": "Agribank",
+      "m12": 6.8,
+      "m6": 6.6,
+      "note": "Gửi online; nguồn khác ghi 5,9% tại quầy"
+    },
+    {
+      "bank": "VietinBank",
+      "m12": 6.8,
+      "note": "Gửi online; 5,9% tại quầy"
+    },
+    {
+      "bank": "MSB",
+      "m12": 6.8
+    },
+    {
+      "bank": "Techcombank",
+      "m12": 6.75,
+      "note": "Phát Lộc Online cộng thêm tới 8,25% nếu đủ điều kiện"
+    },
+    {
+      "bank": "Nam A Bank",
+      "m12": 6.6
+    },
+    {
+      "bank": "SHB",
+      "m12": 6.5
+    },
+    {
+      "bank": "MB",
+      "m12": 6.35,
+      "note": "Gói ưu đãi tới 8% có điều kiện"
+    },
+    {
+      "bank": "TPBank",
+      "m12": 6.25
+    },
+    {
+      "bank": "Vietcombank",
+      "m12": 5.9,
+      "note": "Tại quầy; một nguồn ghi 6,8% online"
+    },
+    {
+      "bank": "Sacombank",
+      "m12": 5.9,
+      "note": "Các nguồn lệch nhau (5,9% – 7,5%)"
+    },
+    {
+      "bank": "ACB",
+      "m12": 5.7,
+      "m6": 4.9
+    },
+    {
+      "bank": "Eximbank",
+      "m12": 5.3,
+      "m6": 5.4
+    },
+    {
+      "bank": "HDBank",
+      "m12": 5.2,
+      "note": "Tại quầy; sản phẩm đặc biệt 7,2%"
+    }
+  ],
+  "jp": [
+    {
+      "bank": "SBJ銀行 はじめくん",
+      "m12": 1.87,
+      "note": "Chỉ cho người mở tài khoản mới"
+    },
+    {
+      "bank": "東京スター銀行",
+      "m12": 1.77,
+      "note": "Chỉ cho người mở tài khoản mới"
+    },
+    {
+      "bank": "SBJ銀行 きほんくん",
+      "m12": 1.7,
+      "note": "Cả khách đang có tài khoản"
+    },
+    {
+      "bank": "SBI新生銀行 スタートアップ",
+      "m12": 1.7,
+      "note": "Khách mới; định kỳ thường 1,25%"
+    },
+    {
+      "bank": "大和ネクスト銀行",
+      "m12": 1.6,
+      "note": "Lãi thường, không cần điều kiện đặc biệt"
+    },
+    {
+      "bank": "auじぶん銀行",
+      "m12": 1.4,
+      "note": "Chỉ cho người mở tài khoản mới"
+    },
+    {
+      "bank": "SBI新生銀行",
+      "m12": 1.25,
+      "note": "Định kỳ 1 năm thường"
+    },
+    {
+      "bank": "楽天銀行",
+      "m12": 1.25,
+      "note": "Khoảng, tùy sản phẩm"
+    },
+    {
+      "bank": "ソニー銀行",
+      "m12": 1,
+      "note": "ウェルカム定期 tới 2% có điều kiện"
+    },
+    {
+      "bank": "PayPay銀行",
+      "m12": 0.5
+    },
+    {
+      "bank": "三菱UFJ銀行",
+      "m12": 0.5,
+      "note": "スーパー定期"
+    },
+    {
+      "bank": "三井住友銀行",
+      "m12": 0.5,
+      "note": "スーパー定期"
+    },
+    {
+      "bank": "みずほ銀行",
+      "m12": 0.5,
+      "note": "スーパー定期"
+    },
+    {
+      "bank": "りそな銀行",
+      "m12": 0.5
+    },
+    {
+      "bank": "ゆうちょ銀行",
+      "m12": 0.275,
+      "note": "Số liệu cũ, chưa xác nhận tháng 10"
+    }
+  ],
+  "vnNote": "Lãi suất %/năm, gửi thường (không phải chứng chỉ tiền gửi). Số liệu tổng hợp từ báo chí 9–16/10/2026, các nguồn có chênh lệch giữa online và tại quầy. Kiểm tra lại trên app ngân hàng trước khi gửi. Tiền lãi tiết kiệm ở Việt Nam không chịu thuế.",
+  "jpNote": "Lãi suất định kỳ 1 năm, trước thuế (bị trừ 20,315%). Lãi gửi không kỳ hạn (普通預金): ngân hàng lớn khoảng 0,4%, ドコモSMTB 0,5%, ソニー 0,4–0,8%. Nhiều mức cao chỉ dành cho khách mới hoặc có hạn mức. Kiểm tra trên website ngân hàng trước khi gửi.",
+  "sources": [
+    {
+      "title": "cake.vn – Lãi suất gửi tiết kiệm cao 10/2026",
+      "url": "https://cake.vn/tin-tuc/tai-chinh/lai-suat-gui-tiet-kiem-ngan-hang-nao-cao-nhat"
+    },
+    {
+      "title": "bankerpro.com.vn – Lãi suất tiết kiệm đầu tháng 10/2026",
+      "url": "https://bankerpro.com.vn/tin-tuc/lai-suat-tiet-kiem-dau-thang-10-2026"
+    },
+    {
+      "title": "vietstock.vn – Lãi suất tiền gửi tháng 10",
+      "url": "https://vietstock.vn/2026/10/lai-suat-tien-gui-thang-10-phan-hoa-giua-bieu-niem-yet-va-cac-goi-uu-dai-757-1500133.htm"
+    },
+    {
+      "title": "techcombank.com – Lãi suất 30+ ngân hàng 15/10/2026",
+      "url": "https://techcombank.com/thong-tin/blog/lai-suat-tiet-kiem"
+    },
+    {
+      "title": "kenh14.vn – So sánh lãi suất ngày 15/10",
+      "url": "https://kenh14.vn/so-sanh-lai-suat-ngay-15-10-tai-mb-vpbank-techcombank-sacombank-hdbank-agribank-vietcombank-bidv-vietinbank-215261015172106365.chn"
+    },
+    {
+      "title": "money-pro.net – ネット銀行 定期預金ランキング 2026年10月",
+      "url": "https://money-pro.net/ranking/netbank-ranking/"
+    },
+    {
+      "title": "money-pro.net – メガバンク 定期預金ランキング 2026年10月",
+      "url": "https://money-pro.net/ranking/megabank-ranking/"
+    },
+    {
+      "title": "kabutan.jp – ネット銀行 定期預金ランキング",
+      "url": "https://kabutan.jp/hikaku/netbank-teiki_ranking/"
+    },
+    {
+      "title": "diamond.jp ザイ – 定期預金金利ランキング 2026年10月",
+      "url": "https://diamond.jp/zai/articles/-/274915"
+    }
+  ]
+}

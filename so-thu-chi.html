@@ -1,0 +1,1370 @@
+<title>Sổ Thu Chi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: sổ cái hai tab — "Thu chi" (tóm tắt, giao dịch, tài khoản, mục tiêu, AI) và "Tiết kiệm & lãi suất" (sổ tiết kiệm, bảng tính lãi, lãi suất ngân hàng); hai cột trên máy tính, một cột trên điện thoại */
+:root {
+  --bg: #F3F5F2;
+  --surface: #FFFFFF;
+  --sunken: #E8ECE8;
+  --ink: #16201B;
+  --muted: #5D6B64;
+  --line: #D5DCD7;
+  --accent: #0E7358;
+  --accent-soft: #D7EDE5;
+  --on-accent: #FFFFFF;
+  --good: #1D7A4A;
+  --warn: #A86512;
+  --warn-soft: #F7E9D2;
+  --bad: #B83A26;
+  --bad-soft: #F6DCD6;
+  --jpy: #B0344A;
+  --vnd: #9A6A00;
+  --f-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --f-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-num: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0E1412; --surface: #161F1B; --sunken: #1E2924; --ink: #E4ECE7; --muted: #95A69D; --line: #2A3732;
+  --accent: #3DBB92; --accent-soft: #173A2F; --on-accent: #06140F; --good: #52C285; --warn: #E3A54B; --warn-soft: #3A2C16;
+  --bad: #EF7A63; --bad-soft: #42211B; --jpy: #F08499; --vnd: #E2B54E; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0E1412; --surface: #161F1B; --sunken: #1E2924; --ink: #E4ECE7; --muted: #95A69D; --line: #2A3732;
+  --accent: #3DBB92; --accent-soft: #173A2F; --on-accent: #06140F; --good: #52C285; --warn: #E3A54B; --warn-soft: #3A2C16;
+  --bad: #EF7A63; --bad-soft: #42211B; --jpy: #F08499; --vnd: #E2B54E; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5 }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 20px }
+h1, h2, h3 { margin: 0; text-wrap: balance }
+h1 { font-family: var(--f-display); font-size: 1.9rem; font-weight: 700; letter-spacing: -0.01em }
+h2 { font-family: var(--f-display); font-size: 1.2rem; font-weight: 500 }
+h3 { font-size: .95rem; font-weight: 600 }
+.label { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600 }
+.num { font-family: var(--f-num); font-variant-numeric: tabular-nums; letter-spacing: -0.02em }
+.muted { color: var(--muted) }
+a { color: var(--accent) }
+button, input, select, textarea { font: inherit; color: inherit }
+button { cursor: pointer; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 14px; font-weight: 500 }
+button:hover { border-color: var(--accent) }
+button.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent) }
+button.ghost { background: transparent; border-color: transparent; color: var(--muted); padding: 4px 8px }
+button.ghost:hover { color: var(--bad) }
+button.small { padding: 4px 10px; font-size: .8rem }
+button:disabled { opacity: .5; cursor: not-allowed }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+input, select, textarea { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; width: 100% }
+input[type="checkbox"] { width: auto }
+label.f { display: grid; gap: 4px; font-size: .82rem; color: var(--muted); min-width: 0 }
+
+header.top { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; justify-content: space-between }
+.toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap }
+.monthnav { display: flex; align-items: center; gap: 6px }
+.monthnav strong { min-width: 9.5em; text-align: center; font-weight: 600 }
+.syncline { display: flex; align-items: center; gap: 8px; font-size: .8rem; color: var(--muted); flex-wrap: wrap }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none }
+.dot.on { background: var(--good) }
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line) }
+.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; padding: 10px 14px; color: var(--muted); font-weight: 600 }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent) }
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; flex: none }
+.seg button { border: 0; border-radius: 0; padding: 8px 10px; background: transparent; font-size: .85rem }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg) }
+
+.cur { display: inline-block; font-family: var(--f-num); font-size: .68rem; font-weight: 500; padding: 1px 6px; border-radius: 4px; border: 1px solid currentColor; line-height: 1.5; vertical-align: 1px }
+.cur.JPY { color: var(--jpy) } .cur.VND { color: var(--vnd) }
+
+.banner { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; background: var(--accent-soft); border-radius: var(--r); padding: 12px 16px }
+
+/* Tóm tắt tháng */
+.ledger { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 20px; display: grid; gap: 18px }
+.figures { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px }
+.fig { display: grid; gap: 2px; border-left: 1px solid var(--line); padding-left: 14px; align-content: start }
+.fig:first-child { border-left: 0; padding-left: 0 }
+.fig .v { font-size: 1.35rem; font-weight: 500 }
+.fig .sub { font-size: .8rem; color: var(--muted) }
+.fig.big .v { font-size: 1.9rem; color: var(--accent) }
+.fig.big .v.neg { color: var(--bad) }
+.meter { position: relative; height: 12px; background: var(--sunken); border-radius: 6px; overflow: hidden }
+.meter > .fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 6px }
+.meter > .fill.warn { background: var(--warn) } .meter > .fill.bad { background: var(--bad) }
+.meter > .pace { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); opacity: .55 }
+.meterrow { display: grid; gap: 6px }
+.meterrow .legend { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; font-size: .82rem; color: var(--muted) }
+.alerts { display: grid; gap: 8px }
+.alert { display: flex; gap: 10px; align-items: start; padding: 10px 12px; border-radius: 8px; font-size: .9rem }
+.alert .chip { flex: none; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 2px 7px; border-radius: 99px; margin-top: 2px }
+.alert.bad { background: var(--bad-soft) } .alert.bad .chip { background: var(--bad); color: var(--surface) }
+.alert.warn { background: var(--warn-soft) } .alert.warn .chip { background: var(--warn); color: var(--surface) }
+.alert.good { background: var(--accent-soft) } .alert.good .chip { background: var(--good); color: var(--surface) }
+
+.cols { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 20px; align-items: start }
+.col { display: grid; gap: 20px; min-width: 0 }
+section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; display: grid; gap: 14px; min-width: 0 }
+.cardhead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap }
+details > summary { cursor: pointer; font-size: .88rem; font-weight: 500; color: var(--accent) }
+details[open] > summary { margin-bottom: 10px }
+.hint { font-size: .78rem; color: var(--muted) }
+.empty { padding: 22px; text-align: center; color: var(--muted); background: var(--sunken); border-radius: 8px }
+
+/* Danh mục */
+.cats { display: grid; gap: 10px }
+.cat { display: grid; gap: 4px }
+.cat .row { display: flex; justify-content: space-between; gap: 8px; font-size: .9rem }
+.cat .meter { height: 7px }
+
+/* Form thêm giao dịch */
+form.add { display: grid; grid-template-columns: auto minmax(0,1fr) auto minmax(0,1.2fr); gap: 8px; align-items: center }
+form.add .r2 { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1.4fr) 10.5em auto; gap: 8px }
+form.add .curpick button { min-width: 3.2em; font-family: var(--f-num) }
+.route { grid-column: 1 / -1; font-size: .82rem; color: var(--muted) }
+.route b { color: var(--ink); font-weight: 600 }
+
+/* Bảng */
+.txwrap { overflow-x: auto }
+table { width: 100%; border-collapse: collapse; font-size: .9rem }
+td, th { padding: 9px 6px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle }
+th { font-weight: 600; font-size: .72rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); white-space: nowrap }
+th.r, td.r { text-align: right }
+td.amt { text-align: right; white-space: nowrap }
+td.amt.in { color: var(--good) } td.amt.save { color: var(--accent) } td.amt.transfer { color: var(--muted) }
+td.date { color: var(--muted); white-space: nowrap; font-family: var(--f-num); font-size: .82rem }
+td .acc { display: block; font-size: .75rem; color: var(--muted) }
+.tag { font-size: .75rem; background: var(--sunken); border-radius: 99px; padding: 2px 8px; white-space: nowrap }
+
+/* Tài khoản */
+.totals { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px }
+.total { background: var(--sunken); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px }
+.total .v { font-size: 1.15rem }
+.total .sub { font-size: .78rem; color: var(--muted) }
+.accounts { display: grid }
+.account { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2px 10px; padding: 10px 0; border-bottom: 1px solid var(--line); align-items: center }
+.account:last-child { border-bottom: 0 }
+.account .nm { font-weight: 500; overflow-wrap: anywhere }
+.account .bal { text-align: right; font-size: 1rem }
+.account .conv { grid-column: 2; text-align: right; font-size: .76rem; color: var(--muted) }
+.account .tools { grid-column: 1 / -1; display: flex; gap: 6px; align-items: center; flex-wrap: wrap }
+.account .tools input { width: 10em }
+.pill { font-size: .66rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); border-radius: 99px; padding: 1px 7px; margin-left: 4px; vertical-align: 1px }
+form.accform { display: grid; gap: 8px; grid-template-columns: minmax(0,1.6fr) 5.5em minmax(0,1fr) auto }
+form.xfer { display: grid; gap: 8px; grid-template-columns: minmax(0,1fr) minmax(0,1fr) }
+form.xfer .full { grid-column: 1 / -1 }
+.rate { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: .88rem }
+.rate input { width: 7em }
+
+/* Mục tiêu */
+.goals { display: grid; gap: 12px }
+.goal { border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: grid; gap: 8px }
+.goal .top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline }
+.goal .name { font-weight: 600 }
+.goal .need { font-size: .88rem }
+.goal .need b { font-family: var(--f-num); color: var(--accent) }
+.goal .acts { display: flex; gap: 6px; flex-wrap: wrap; align-items: center }
+.goal .acts input { width: 9em }
+.status { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 2px 8px; border-radius: 99px; white-space: nowrap }
+.status.ok { background: var(--accent-soft); color: var(--good) }
+.status.tight { background: var(--warn-soft); color: var(--warn) }
+.status.no { background: var(--bad-soft); color: var(--bad) }
+form.goalform { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(0,1fr) 5.5em minmax(0,1fr) auto; gap: 8px }
+
+/* AI */
+.chat { display: grid; gap: 10px; max-height: 460px; overflow-y: auto; padding-right: 2px }
+.msg { padding: 10px 12px; border-radius: 8px; white-space: pre-wrap; font-size: .92rem; overflow-wrap: anywhere }
+.msg.ai { background: var(--sunken) }
+.msg.me { background: var(--accent-soft); justify-self: end; max-width: 90% }
+.msg.err { background: var(--bad-soft) }
+.quick { display: flex; flex-wrap: wrap; gap: 6px }
+.quick button { font-size: .82rem; padding: 6px 10px; border-radius: 99px }
+form.ask { display: flex; gap: 8px }
+
+/* Sổ tiết kiệm */
+.deps { display: grid; gap: 10px }
+.dep { border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: grid; gap: 6px }
+.dep .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap }
+.dep .bank { font-weight: 600 }
+.dep .facts { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; font-size: .85rem }
+.dep .facts span { display: block; color: var(--muted); font-size: .72rem }
+.dep .acts { display: flex; gap: 6px; flex-wrap: wrap }
+form.depform { display: grid; gap: 8px; grid-template-columns: repeat(4, minmax(0,1fr)) }
+form.depform .w2 { grid-column: span 2 }
+
+/* Bảng tính lãi */
+.calc { display: grid; gap: 8px; grid-template-columns: minmax(0,1.3fr) 5.5em minmax(0,.8fr) minmax(0,.8fr) minmax(0,1.1fr) }
+.calc .w-all { grid-column: 1 / -1 }
+.calcsum { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px }
+.calcsum .total .v { font-size: 1.05rem }
+.bar { height: 8px; background: var(--sunken); border-radius: 4px; overflow: hidden; display: flex; min-width: 80px }
+.bar i { display: block; height: 100% }
+.bar i.p { background: var(--muted); opacity: .45 } .bar i.n { background: var(--accent) }
+.tax { display: flex; gap: 6px; align-items: center; font-size: .85rem }
+
+/* Lãi suất */
+.rates td.bank { font-weight: 500 }
+.rates td .note { display: block; font-size: .74rem; color: var(--muted); font-weight: 400 }
+.rates tr.top td.bank::after { content: "Top"; margin-left: 6px; font-size: .62rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--on-accent); background: var(--accent); border-radius: 99px; padding: 1px 6px; vertical-align: 2px }
+.sources { font-size: .76rem; color: var(--muted); display: grid; gap: 2px }
+.sources a { overflow-wrap: anywhere }
+.advice { white-space: pre-wrap; font-size: .92rem; background: var(--sunken); border-radius: 8px; padding: 12px }
+
+/* Cài đặt */
+.settings { display: grid; gap: 12px }
+.settings .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px }
+.settings label { display: grid; gap: 4px; font-size: .85rem; color: var(--muted) }
+.share { background: var(--sunken); border-radius: 8px; padding: 12px 14px; font-size: .88rem; display: grid; gap: 4px }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 16px; border-radius: 8px; font-size: .88rem; z-index: 5; max-width: calc(100% - 32px) }
+
+@media (max-width: 900px) {
+  .cols { grid-template-columns: minmax(0,1fr) }
+  .figures { grid-template-columns: repeat(2, minmax(0,1fr)) }
+  .fig:nth-child(3) { border-left: 0; padding-left: 0 }
+  .calc { grid-template-columns: minmax(0,1fr) 5.5em }
+  .calc .f-rate, .calc .f-years { grid-column: auto }
+}
+@media (max-width: 560px) {
+  form.add { grid-template-columns: minmax(0,1fr) auto }
+  form.add .kindseg, form.add #tCat { grid-column: 1 / -1 }
+  form.add .r2 { grid-template-columns: minmax(0,1fr) minmax(0,1fr) }
+  form.add .r2 #tNote { grid-column: 1 / -1 }
+  form.goalform, form.accform { grid-template-columns: minmax(0,1fr) 5.5em }
+  form.goalform .gname, form.accform .aname { grid-column: 1 / -1 }
+  form.depform { grid-template-columns: minmax(0,1fr) minmax(0,1fr) }
+  .dep .facts, .calcsum { grid-template-columns: minmax(0,1fr) minmax(0,1fr) }
+}
+@media (prefers-reduced-motion: no-preference) { .meter > .fill { transition: width .4s ease } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="label">Sổ tài chính gia đình · ¥ &amp; ₫</div>
+      <h1>Sổ Thu Chi</h1>
+      <div class="syncline"><span class="dot" id="syncDot"></span><span id="syncText">Đang kết nối…</span></div>
+    </div>
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="Hiển thị bằng loại tiền" id="viewSeg">
+        <button type="button" data-cur="JPY" aria-pressed="true">Yên ¥</button>
+        <button type="button" data-cur="VND" aria-pressed="false">Việt ₫</button>
+      </div>
+      <div class="monthnav">
+        <button id="prevM" aria-label="Tháng trước">‹</button>
+        <strong id="monthLabel">Tháng 10 · 2026</strong>
+        <button id="nextM" aria-label="Tháng sau">›</button>
+      </div>
+      <button id="toggleSettings">Thiết lập</button>
+    </div>
+  </header>
+
+  <div class="banner" id="demoBanner" hidden>
+    <span><b>Đây là dữ liệu mẫu</b> để bạn xem app hoạt động thế nào. Không có số nào là của bạn.</span>
+    <button class="primary" id="startReal">Bắt đầu với số liệu của tôi</button>
+  </div>
+
+  <section class="card settings" id="settings" hidden>
+    <div class="cardhead"><h2>Thiết lập</h2></div>
+    <div class="grid">
+      <label for="sCur">Thu nhập và ngân sách tính bằng
+        <select id="sCur"><option value="JPY">Yên Nhật (¥)</option><option value="VND">Việt Nam đồng (₫)</option></select></label>
+      <label for="sIncome">Thu nhập cả nhà mỗi tháng<input id="sIncome" inputmode="decimal" placeholder="vd: 26man hoặc 260000"></label>
+      <label for="sLimit">Giới hạn chi tiêu mỗi tháng<input id="sLimit" inputmode="decimal" placeholder="vd: 18man"></label>
+      <label for="sRate">Tỷ giá: 1 ¥ = ? ₫<input id="sRate" inputmode="decimal" placeholder="vd: 172"></label>
+      <label for="sDefJPY">Tiền yên mặc định vào<select id="sDefJPY"></select></label>
+      <label for="sDefVND">Tiền đồng mặc định vào<select id="sDefVND"></select></label>
+    </div>
+    <div class="label">Hạn mức theo danh mục (cùng loại tiền với ngân sách, để trống nếu không cần)</div>
+    <div class="grid" id="catLimits"></div>
+    <div><button class="primary" id="saveSettings">Lưu thiết lập</button></div>
+    <div class="share">
+      <b>Dùng chung với vợ/chồng trên nhiều máy</b>
+      <span>Dữ liệu trong sổ này dùng chung cho mọi người được mời và tự đồng bộ ngay khi ai đó nhập. Để mời: bấm <b>Share</b> ở góc trên trang này, nhập email claude.ai của vợ/chồng và chọn quyền <b>Editor</b> (hoặc Contributor). Không bật “ai có link cũng xem được”, vì người xem qua link không được ghi và không thấy số liệu.</span>
+    </div>
+  </section>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tabMain" aria-selected="true" aria-controls="pMain">Thu chi</button>
+    <button role="tab" id="tabSave" aria-selected="false" aria-controls="pSave">Tiết kiệm &amp; lãi suất</button>
+  </div>
+
+  <!-- ===================== TAB THU CHI ===================== -->
+  <div id="pMain" role="tabpanel" aria-labelledby="tabMain" style="display:grid;gap:20px">
+    <section class="ledger" aria-label="Tóm tắt tháng">
+      <div class="figures">
+        <div class="fig big"><span class="label">Còn lại tháng này</span><span class="v num" id="fLeft">0</span><span class="sub num" id="fLeftAlt"></span></div>
+        <div class="fig"><span class="label">Đã chi</span><span class="v num" id="fSpent">0</span><span class="sub num" id="fSpentAlt"></span></div>
+        <div class="fig"><span class="label">Thu nhập</span><span class="v num" id="fIncome">0</span><span class="sub num" id="fIncomeAlt"></span></div>
+        <div class="fig"><span class="label">Tổng tài sản</span><span class="v num" id="fAssets">0</span><span class="sub num" id="fAssetsAlt"></span></div>
+      </div>
+      <div class="meterrow">
+        <div class="meter" aria-hidden="true"><div class="fill" id="mFill" style="width:0"></div><div class="pace" id="mPace" hidden></div></div>
+        <div class="legend"><span id="mLeft"></span><span id="mRight"></span></div>
+      </div>
+      <div class="alerts" id="alerts"></div>
+    </section>
+
+    <div class="cols">
+      <div class="col">
+        <section class="card">
+          <div class="cardhead"><h2>Thêm giao dịch</h2><span class="hint">Gõ nhanh: 1500, 3man, 45k, 1.2tr</span></div>
+          <form class="add" id="addForm" autocomplete="off">
+            <div class="seg kindseg" role="group" aria-label="Loại giao dịch" id="kindSeg">
+              <button type="button" data-kind="out" aria-pressed="true">Chi</button>
+              <button type="button" data-kind="in" aria-pressed="false">Thu</button>
+              <button type="button" data-kind="save" aria-pressed="false">Tiết kiệm</button>
+            </div>
+            <input id="tAmount" inputmode="decimal" placeholder="Số tiền" required aria-label="Số tiền">
+            <div class="seg curpick" role="group" aria-label="Loại tiền" id="curSeg">
+              <button type="button" data-cur="JPY" aria-pressed="true">¥</button>
+              <button type="button" data-cur="VND" aria-pressed="false">₫</button>
+            </div>
+            <select id="tCat" aria-label="Danh mục"></select>
+            <div class="r2">
+              <select id="tAcc" aria-label="Tài khoản"></select>
+              <input id="tNote" placeholder="Ghi chú (vd: siêu thị Gyomu)" aria-label="Ghi chú">
+              <input id="tDate" type="date" aria-label="Ngày">
+              <button class="primary" type="submit">Thêm</button>
+            </div>
+            <div class="route" id="route"></div>
+          </form>
+        </section>
+
+        <section class="card">
+          <div class="cardhead"><h2>Chi theo danh mục</h2><span class="hint" id="catHint"></span></div>
+          <div class="cats" id="cats"></div>
+        </section>
+
+        <section class="card">
+          <div class="cardhead"><h2>Giao dịch trong tháng</h2><span class="hint" id="txCount"></span></div>
+          <div class="txwrap"><table><thead><tr><th>Ngày</th><th>Nội dung</th><th>Danh mục</th><th class="r">Số tiền</th><th></th></tr></thead><tbody id="txBody"></tbody></table></div>
+          <div class="empty" id="txEmpty" hidden>Chưa có giao dịch nào trong tháng này. Thêm khoản đầu tiên ở ô phía trên.</div>
+        </section>
+      </div>
+
+      <div class="col">
+        <section class="card">
+          <div class="cardhead"><h2>Tài khoản ngân hàng</h2><span class="hint" id="rateHint"></span></div>
+          <div class="totals">
+            <div class="total"><span class="label">Bên Nhật <span class="cur JPY">JPY</span></span><span class="v num" id="totJPY">0</span><span class="sub num" id="totJPYalt"></span></div>
+            <div class="total"><span class="label">Bên Việt Nam <span class="cur VND">VND</span></span><span class="v num" id="totVND">0</span><span class="sub num" id="totVNDalt"></span></div>
+          </div>
+          <div class="accounts" id="accounts"></div>
+          <details id="accDetails">
+            <summary>Thêm tài khoản</summary>
+            <form class="accform" id="accForm" autocomplete="off">
+              <input id="aName" class="aname" placeholder="Tên (vd: Vietcombank, Yucho)" required aria-label="Tên tài khoản">
+              <select id="aCur" aria-label="Loại tiền"><option value="VND">₫</option><option value="JPY">¥</option></select>
+              <input id="aBal" inputmode="decimal" placeholder="Số dư" aria-label="Số dư hiện tại">
+              <button class="primary" type="submit">Thêm</button>
+            </form>
+          </details>
+          <details id="xferDetails">
+            <summary>Chuyển tiền giữa tài khoản (vd: gửi yên về Việt Nam)</summary>
+            <form class="xfer" id="xferForm" autocomplete="off">
+              <select id="xFrom" aria-label="Từ tài khoản"></select>
+              <select id="xTo" aria-label="Đến tài khoản"></select>
+              <input id="xAmt" inputmode="decimal" placeholder="Số tiền gửi đi" required aria-label="Số tiền gửi đi">
+              <input id="xGot" inputmode="decimal" placeholder="Số tiền nhận được" aria-label="Số tiền nhận được">
+              <span class="hint full" id="xHint">Để trống ô “nhận được” thì app tự quy đổi theo tỷ giá.</span>
+              <button class="primary full" type="submit">Ghi lại chuyển tiền</button>
+            </form>
+          </details>
+          <div class="rate">
+            <label for="rateQuick">Tỷ giá 1 ¥ =</label>
+            <input id="rateQuick" inputmode="decimal" class="num">
+            <span>₫</span>
+            <button id="rateSave" type="button">Cập nhật</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="cardhead"><h2>Món đồ muốn mua</h2><span class="hint">Tự tính số cần để dành mỗi tháng</span></div>
+          <div class="goals" id="goals"></div>
+          <form class="goalform" id="goalForm" autocomplete="off">
+            <input id="gName" class="gname" placeholder="Tên món đồ (vd: iPhone 17)" required aria-label="Tên món đồ">
+            <input id="gPrice" inputmode="decimal" placeholder="Giá" required aria-label="Giá">
+            <select id="gCur" aria-label="Loại tiền"><option value="JPY">¥</option><option value="VND">₫</option></select>
+            <input id="gBy" type="month" required aria-label="Muốn mua trước tháng">
+            <button class="primary" type="submit">Thêm</button>
+          </form>
+        </section>
+
+        <section class="card">
+          <div class="cardhead"><h2>Cố vấn AI</h2><span class="hint">Claude đọc số liệu của gia đình</span></div>
+          <div class="quick" id="quick">
+            <button data-q="Phân tích chi tiêu tháng này của gia đình tôi. Có đang tiêu quá đà không? Khoản nào nên cắt giảm?">Có tiêu quá đà?</button>
+            <button data-q="Với các món đồ muốn mua, mỗi tháng cần tiết kiệm bao nhiêu? Kế hoạch đó có khả thi với thu nhập và chi tiêu hiện tại không?">Cần tiết kiệm bao nhiêu?</button>
+            <button data-q="Gia đình tôi sống ở Nhật và có tiền ở cả Nhật lẫn Việt Nam. Nên giữ bao nhiêu tiền yên bên Nhật để chi tiêu và dự phòng, bao nhiêu thì nên gửi về tài khoản Việt Nam mỗi tháng?">Gửi về VN bao nhiêu?</button>
+            <button data-q="Gợi ý một ngân sách hợp lý cho từng danh mục, dựa trên thu nhập và thói quen chi tiêu hiện tại.">Gợi ý ngân sách</button>
+          </div>
+          <div class="chat" id="chat" aria-live="polite">
+            <div class="msg ai">Chào bạn! Mình xem số liệu thu chi, tài khoản ở Nhật và Việt Nam, sổ tiết kiệm và mục tiêu của gia đình để đưa ra lời khuyên. Chọn một câu hỏi ở trên hoặc tự hỏi bên dưới.</div>
+          </div>
+          <form class="ask" id="askForm" autocomplete="off">
+            <input id="askInput" placeholder="Hỏi về chi tiêu, tiết kiệm, gửi tiền…" aria-label="Câu hỏi cho cố vấn AI">
+            <button class="primary" type="submit" id="askBtn">Hỏi</button>
+          </form>
+          <div class="hint" id="aiNote"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TAB TIẾT KIỆM ===================== -->
+  <div id="pSave" role="tabpanel" aria-labelledby="tabSave" hidden style="display:grid;gap:20px">
+    <div class="cols">
+      <div class="col">
+        <section class="card">
+          <div class="cardhead"><h2>Sổ tiết kiệm đang gửi</h2><span class="hint" id="depHint"></span></div>
+          <div class="totals">
+            <div class="total"><span class="label">Gửi ở Nhật <span class="cur JPY">JPY</span></span><span class="v num" id="depJPY">0</span><span class="sub" id="depJPYsub"></span></div>
+            <div class="total"><span class="label">Gửi ở Việt Nam <span class="cur VND">VND</span></span><span class="v num" id="depVND">0</span><span class="sub" id="depVNDsub"></span></div>
+          </div>
+          <div class="deps" id="deps"></div>
+          <details id="depDetails">
+            <summary>Thêm sổ tiết kiệm</summary>
+            <form class="depform" id="depForm" autocomplete="off">
+              <label class="f w2" for="dBank">Ngân hàng<input id="dBank" list="bankList" placeholder="vd: Vietcombank, SBI新生" required></label>
+              <label class="f" for="dAmt">Số tiền gửi<input id="dAmt" inputmode="decimal" placeholder="vd: 100tr" required></label>
+              <label class="f" for="dCur">Loại tiền<select id="dCur"><option value="VND">₫ Việt Nam</option><option value="JPY">¥ Nhật</option></select></label>
+              <label class="f" for="dRate">Lãi suất %/năm<input id="dRate" inputmode="decimal" placeholder="vd: 6" required></label>
+              <label class="f" for="dTerm">Kỳ hạn<select id="dTerm"><option value="1">1 tháng</option><option value="3">3 tháng</option><option value="6">6 tháng</option><option value="9">9 tháng</option><option value="12" selected>12 tháng</option><option value="18">18 tháng</option><option value="24">24 tháng</option><option value="36">36 tháng</option><option value="60">5 năm</option></select></label>
+              <label class="f" for="dStart">Ngày gửi<input id="dStart" type="date" required></label>
+              <label class="f" for="dMode">Khi đáo hạn<select id="dMode"><option value="roll">Tái tục cả gốc và lãi</option><option value="end">Rút lãi, không tái tục</option></select></label>
+              <label class="f w2" for="dFrom">Trích tiền từ tài khoản<select id="dFrom"></select></label>
+              <div class="w2" style="display:flex;align-items:end"><button class="primary" type="submit" style="width:100%">Thêm sổ tiết kiệm</button></div>
+            </form>
+            <datalist id="bankList"></datalist>
+          </details>
+        </section>
+
+        <section class="card">
+          <div class="cardhead"><h2>Bảng tính lãi tiết kiệm</h2><span class="hint">Tính số tiền nhận được trong tương lai</span></div>
+          <form class="calc" id="calcForm" autocomplete="off">
+            <label class="f" for="cAmt">Số tiền gửi ban đầu<input id="cAmt" inputmode="decimal" value="100tr"></label>
+            <label class="f" for="cCur">Tiền<select id="cCur"><option value="VND">₫</option><option value="JPY">¥</option></select></label>
+            <label class="f f-rate" for="cRate">Lãi %/năm<input id="cRate" inputmode="decimal" value="6"></label>
+            <label class="f f-years" for="cYears">Số năm<input id="cYears" type="number" min="1" max="40" value="10"></label>
+            <label class="f" for="cMonthly">Gửi thêm mỗi tháng<input id="cMonthly" inputmode="decimal" placeholder="0" value=""></label>
+            <label class="f w-all" for="cMode">Cách tính lãi
+              <select id="cMode">
+                <option value="year">Gửi kỳ hạn 12 tháng, đáo hạn thì tái tục cả gốc lẫn lãi (phổ biến)</option>
+                <option value="month">Lãi nhập gốc hằng tháng</option>
+                <option value="simple">Lãi đơn: rút lãi ra tiêu, không nhập gốc</option>
+              </select></label>
+            <label class="tax w-all" for="cTax"><input type="checkbox" id="cTax"> Trừ thuế tiền lãi 20,315% (ở Nhật bị trừ tự động; ở Việt Nam tiền lãi tiết kiệm không chịu thuế)</label>
+          </form>
+          <div class="calcsum">
+            <div class="total"><span class="label">Tổng nhận được</span><span class="v num" id="cTotal">0</span><span class="sub num" id="cTotalAlt"></span></div>
+            <div class="total"><span class="label">Tiền gốc đã gửi</span><span class="v num" id="cPrin">0</span></div>
+            <div class="total"><span class="label">Tiền lãi</span><span class="v num" id="cInt" style="color:var(--accent)">0</span></div>
+          </div>
+          <div class="txwrap"><table><thead><tr><th>Năm</th><th class="r">Gốc đã gửi</th><th class="r">Lãi trong năm</th><th class="r">Lãi cộng dồn</th><th class="r">Tổng cuối năm</th><th></th></tr></thead><tbody id="cBody"></tbody></table></div>
+          <div class="hint">Lãi suất có thể thay đổi khi tái tục; bảng giả định lãi suất giữ nguyên suốt thời gian gửi.</div>
+        </section>
+      </div>
+
+      <div class="col">
+        <section class="card">
+          <div class="cardhead"><h2>Lãi suất ngân hàng</h2><span class="hint" id="ratesDate"></span></div>
+          <div class="seg" role="group" aria-label="Chọn nước" id="rateSeg">
+            <button type="button" data-c="vn" aria-pressed="true">Việt Nam</button>
+            <button type="button" data-c="jp" aria-pressed="false">Nhật Bản</button>
+          </div>
+          <div class="txwrap rates"><table><thead id="ratesHead"></thead><tbody id="ratesBody"></tbody></table></div>
+          <div class="empty" id="ratesEmpty" hidden>Bảng lãi suất sẽ hiện khi mở trang này trên claude.ai.</div>
+          <div class="hint" id="ratesNote"></div>
+          <button class="primary" id="adviseBtn" type="button">Gợi ý nên gửi tiết kiệm ở đâu</button>
+          <div class="advice" id="advice" hidden></div>
+          <details><summary>Nguồn số liệu</summary><div class="sources" id="sources"></div></details>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const CATS = ["Ăn uống", "Đi lại", "Nhà ở & hóa đơn", "Điện thoại & mạng", "Mua sắm", "Giải trí", "Sức khỏe & bảo hiểm", "Học tập", "Con cái", "Gửi về gia đình", "Quà & hiếu hỉ", "Khác"];
+  const IN_CATS = ["Lương", "Thưởng", "Làm thêm (arubaito)", "Lãi tiết kiệm", "Khác"];
+  const SYM = { JPY: "¥", VND: "₫" };
+  const OTHER = c => c === "JPY" ? "VND" : "JPY";
+  const DEFAULT_RATE = 172;
+  const JP_TAX = 0.20315;
+  const clone = o => JSON.parse(JSON.stringify(o));
+
+  // ---------- Tiền tệ ----------
+  const rate = () => (S().settings && S().settings.rate) || DEFAULT_RATE; // ₫ cho 1 ¥
+  const conv = (n, from, to) => (!from || !to || from === to) ? n : (from === "JPY" ? n * rate() : n / rate());
+  const group = n => new Intl.NumberFormat("vi-VN").format(Math.round(n));
+  const fmt = (n, cur) => {
+    cur = cur || state.view;
+    if (cur === "JPY") return (n < 0 ? "−" : "") + "¥" + group(Math.abs(n));
+    return (n < 0 ? "−" : "") + group(Math.abs(n)) + " ₫";
+  };
+  const short = (n, cur) => {
+    cur = cur || state.view;
+    if (cur === "JPY") return fmt(n, "JPY");
+    const a = Math.abs(n), s = n < 0 ? "−" : "";
+    if (a >= 1e9) return s + (a / 1e9).toLocaleString("vi-VN", { maximumFractionDigits: 2 }) + " tỷ ₫";
+    if (a >= 1e6) return s + (a / 1e6).toLocaleString("vi-VN", { maximumFractionDigits: 1 }) + "tr ₫";
+    if (a >= 1e3) return s + Math.round(a / 1e3) + "k ₫"; return s + Math.round(a) + " ₫";
+  };
+  // nhập liệu: "45k", "1.2tr", "2,5tr", "3man", "3万", "1 tỷ", "150000", "150.000", "¥1,500"
+  function parseMoney(str) {
+    if (str == null) return NaN;
+    let s = String(str).toLowerCase().replace(/\s|₫|đ|vnd|¥|円|yen|jpy|yên/g, "");
+    if (!s) return NaN;
+    let mult = 1;
+    const m = s.match(/(k|nghìn|ngàn|man|万|tr|triệu|m|tỷ|ty|b)$/);
+    if (m) { mult = { k: 1e3, "nghìn": 1e3, "ngàn": 1e3, man: 1e4, "万": 1e4, tr: 1e6, "triệu": 1e6, m: 1e6, "tỷ": 1e9, ty: 1e9, b: 1e9 }[m[1]]; s = s.slice(0, -m[1].length);
+      s = s.replace(",", "."); }
+    else { s = s.replace(/[.,](?=\d{3}(\D|$))/g, "").replace(",", "."); }
+    const v = parseFloat(s);
+    return isFinite(v) ? Math.round(v * mult) : NaN;
+  }
+  const parsePct = s => parseFloat(String(s).replace("%", "").replace(",", "."));
+  const pad = n => String(n).padStart(2, "0");
+  const today = new Date();
+  const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const dmy = s => { const [y, m, d] = s.split("-"); return `${d}/${m}/${y}`; };
+  const mkey = (y, m) => `${y}-${pad(m)}`;
+  const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  const curTag = c => { const s = document.createElement("span"); s.className = "cur " + c; s.textContent = c; return s; };
+  const opt = (value, text) => { const o = document.createElement("option"); o.value = value; o.textContent = text; return o; };
+  const addMonths = (s, n) => { const [y, m, d] = s.split("-").map(Number); const x = new Date(y, m - 1 + n, d); return x; };
+  const monthsSince = s => { const [y, m, d] = s.split("-").map(Number); return Math.max(0, (today - new Date(y, m - 1, d)) / (86400000 * 30.4375)); };
+
+  // ---------- Trạng thái ----------
+  // M: dữ liệu thật của gia đình (đồng bộ). D: dữ liệu mẫu khi chưa thiết lập.
+  const M = { settings: null, accounts: {}, goals: {}, deposits: {}, tx: {}, rates: null };
+  let D = null;
+  const state = { loaded: false, view: "JPY", y: today.getFullYear(), m: today.getMonth() + 1, kind: "out", cur: "JPY", accTouched: false, chat: [], me: null, rateC: "vn" };
+  const isDemo = () => !M.settings;
+  const S = () => isDemo() ? D : M;
+  const list = k => Object.values(S()[k] || {});
+
+  function demoData() {
+    const y = state.y, m = state.m, d = Math.min(today.getDate(), 28);
+    const day = n => `${y}-${pad(m)}-${pad(Math.max(1, Math.min(n, d)))}`;
+    const plus = k => mkey(y + Math.floor((m - 1 + k) / 12), ((m - 1 + k) % 12) + 1);
+    const arr = a => Object.fromEntries(a.map(x => [x.id, x]));
+    const mo = mkey(y, m);
+    return {
+      settings: { cur: "JPY", income: 420000, limit: 280000, rate: DEFAULT_RATE, defAcc: { JPY: "a1", VND: "a3" },
+        catLimits: { "Ăn uống": 70000, "Mua sắm": 30000, "Giải trí": 15000 } },
+      accounts: arr([
+        { id: "a1", name: "Yucho (Nhật)", cur: "JPY", balance: 612000 },
+        { id: "a2", name: "Tiền mặt", cur: "JPY", balance: 28500 },
+        { id: "a3", name: "Vietcombank", cur: "VND", balance: 58000000 }
+      ]),
+      goals: arr([
+        { id: "g1", name: "Vé máy bay cả nhà về Tết", price: 240000, cur: "JPY", saved: 80000, by: plus(3) },
+        { id: "g2", name: "Laptop mới", price: 30000000, cur: "VND", saved: 9000000, by: plus(7) }
+      ]),
+      deposits: arr([
+        { id: "s1", bank: "LPBank", cur: "VND", amount: 200000000, rate: 7.2, term: 12, start: ymd(addMonths(ymd(today), -4)), mode: "roll" },
+        { id: "s2", bank: "SBI新生銀行", cur: "JPY", amount: 1000000, rate: 1.25, term: 12, start: ymd(addMonths(ymd(today), -9)), mode: "roll" }
+      ]),
+      tx: arr([
+        { id: "d1", kind: "in", cat: "Lương", amount: 260000, cur: "JPY", acc: "a1", note: "Lương chồng", date: day(1), month: mo },
+        { id: "d1b", kind: "in", cat: "Lương", amount: 160000, cur: "JPY", acc: "a1", note: "Lương vợ", date: day(1), month: mo },
+        { id: "d2", kind: "out", cat: "Nhà ở & hóa đơn", amount: 78000, cur: "JPY", acc: "a1", note: "Tiền nhà + điện nước gas", date: day(2), month: mo },
+        { id: "d3", kind: "out", cat: "Ăn uống", amount: 28400, cur: "JPY", acc: "a2", note: "Siêu thị Gyomu, cơm trưa", date: day(5), month: mo },
+        { id: "d4", kind: "out", cat: "Mua sắm", amount: 23800, cur: "JPY", acc: "a1", note: "Áo khoác mùa đông", date: day(7), month: mo },
+        { id: "d5", kind: "out", cat: "Ăn uống", amount: 24200, cur: "JPY", acc: "a2", note: "Ăn ngoài cuối tuần", date: day(10), month: mo },
+        { id: "d6", kind: "out", cat: "Đi lại", amount: 12800, cur: "JPY", acc: "a1", note: "Thẻ Suica", date: day(11), month: mo },
+        { id: "d7", kind: "transfer", cat: "Chuyển tiền", amount: 50000, cur: "JPY", acc: "a1", to: "a3", amount2: 8550000, note: "Gửi về Vietcombank", date: day(3), month: mo },
+        { id: "d8", kind: "out", cat: "Gửi về gia đình", amount: 3000000, cur: "VND", acc: "a3", note: "Gửi bố mẹ", date: day(4), month: mo },
+        { id: "d9", kind: "in", cat: "Khác", amount: 2000000, cur: "VND", acc: "a3", note: "Tiền cho thuê đất ở quê", date: day(6), month: mo }
+      ])
+    };
+  }
+  D = demoData();
+
+  // ---------- Kho dữ liệu: dùng chung cho cả nhà qua db, dự phòng localStorage ----------
+  let repo = null, user = null, db = null;
+  const LKEY = "sothuchi:v3";
+  function changed() { render(); }
+
+  function cloudRepo() {
+    const root = db.doc("hh/main");
+    const subs = [];
+    let txUnsub = null;
+    const toMap = q => Object.fromEntries(q.docs.map(d => [d.id, { ...clone(d.data()), id: d.id }]));
+    const onErr = e => { console.warn(e); setSync(false, "Mất kết nối, đang thử lại…"); };
+    return {
+      mode: "cloud",
+      start() {
+        subs.push(root.onSnapshot(s => {
+          M.settings = s.exists ? clone(s.data()) : null;
+          if (!state.loaded) { state.loaded = true; if (!M.settings) migrateOld(); }
+          setSync(true); changed();
+        }, onErr));
+        ["accounts", "goals", "deposits"].forEach(k => subs.push(root.collection(k).onSnapshot(q => { M[k] = toMap(q); changed(); }, onErr)));
+        subs.push(db.doc("ref/rates").onSnapshot(s => { M.rates = s.exists ? clone(s.data()) : null; renderRates(); }, onErr));
+        this.watchMonth();
+      },
+      watchMonth() {
+        if (txUnsub) txUnsub();
+        M.tx = {};
+        txUnsub = root.collection("tx").where("month", "==", mkey(state.y, state.m)).onSnapshot(q => { M.tx = toMap(q); changed(); }, onErr);
+      },
+      put(k, o) { M[k][o.id] = o; return root.collection(k).doc(o.id).set(clone(o)).catch(saveErr); },
+      del(k, id) { delete M[k][id]; return root.collection(k).doc(id).delete().catch(saveErr); },
+      setSettings(o) { M.settings = o; return root.set(clone(o)).catch(saveErr); }
+    };
+  }
+  function localRepo() {
+    let blob = { settings: null, accounts: {}, goals: {}, deposits: {}, tx: {} };
+    try { const v = localStorage.getItem(LKEY); if (v) blob = JSON.parse(v); } catch {}
+    const persist = () => { try { localStorage.setItem(LKEY, JSON.stringify(blob)); } catch {} };
+    const sync = () => { M.settings = blob.settings; M.accounts = blob.accounts; M.goals = blob.goals; M.deposits = blob.deposits;
+      const mo = mkey(state.y, state.m); M.tx = Object.fromEntries(Object.entries(blob.tx).filter(([, t]) => t.month === mo)); };
+    return {
+      mode: "local",
+      start() { state.loaded = true; sync(); if (!M.settings) migrateOld(); setSync(false, "Chưa đồng bộ: dữ liệu chỉ lưu trên trình duyệt này. Mở trang trên claude.ai để dùng chung."); changed(); },
+      watchMonth() { sync(); },
+      put(k, o) { blob[k][o.id] = o; persist(); sync(); },
+      del(k, id) { delete blob[k][id]; persist(); sync(); },
+      setSettings(o) { blob.settings = o; persist(); sync(); }
+    };
+  }
+  function saveErr(e) { console.error(e); toast(e?.code === "invalid_argument" ? "Bạn chưa có quyền ghi vào sổ này. Nhờ chủ sổ mời bạn với quyền Editor." : "Không lưu được: " + (e?.message || e?.code || "lỗi")); }
+  function setSync(on, text) {
+    $("syncDot").classList.toggle("on", !!on);
+    $("syncText").textContent = text || (on ? "Đã đồng bộ · dùng chung cho cả nhà" : "Đang kết nối…");
+  }
+
+  // Chuyển dữ liệu từ phiên bản cũ (riêng tư theo người / trên trình duyệt) sang sổ chung
+  let migrating = false;
+  async function migrateOld() {
+    if (migrating) return; migrating = true;
+    try {
+      const docs = {};
+      if (db && state.me) {
+        const q = await db.collection("data/users/" + state.me).get();
+        q.docs.forEach(d => docs[d.id] = clone(d.data()));
+      }
+      if (!docs.profile) {
+        try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i);
+          if (k && /^sothuchi:(profile|m-\d{4}-\d{2})$/.test(k)) docs[k.slice(9)] = JSON.parse(localStorage.getItem(k)); } } catch {}
+      }
+      const p = docs.profile; if (!p) return;
+      const pcur = p.cur || "VND";
+      const accounts = Array.isArray(p.accounts) ? p.accounts : [];
+      if (!p.accounts && p.savings > 0) accounts.push({ id: uid(), name: "Tiết kiệm", cur: "VND", balance: p.savings });
+      for (const a of accounts) await repo.put("accounts", a);
+      for (const g of (p.goals || [])) await repo.put("goals", { cur: "VND", ...g });
+      for (const [k, v] of Object.entries(docs)) {
+        if (!k.startsWith("m-")) continue;
+        for (const t of (v.tx || [])) await repo.put("tx", { cur: "VND", ...t, month: k.slice(2) });
+      }
+      await repo.setSettings({ cur: pcur, income: p.income || 0, limit: p.limit || 0, rate: p.rate || DEFAULT_RATE, catLimits: p.catLimits || {}, defAcc: {} });
+      repo.watchMonth();
+      toast("Đã chuyển dữ liệu cũ của bạn vào sổ chung");
+    } catch (e) { console.warn("migrate", e); }
+  }
+
+  async function ensureReal() {
+    if (!isDemo()) return true;
+    if (!state.loaded) { toast("Đang tải dữ liệu, thử lại sau giây lát"); return false; }
+    await repo.setSettings({ cur: "JPY", income: 0, limit: 0, rate: DEFAULT_RATE, catLimits: {}, defAcc: {} });
+    render();
+    $("settings").hidden = false; fillSettings(); $("accDetails").open = true;
+    toast("Đã bỏ dữ liệu mẫu. Nhập thu nhập và thêm tài khoản ngân hàng của gia đình.");
+    return true;
+  }
+
+  // ---------- Tính toán ----------
+  const defaultAcc = cur => {
+    const accs = list("accounts").filter(a => a.cur === cur);
+    const pref = S().settings?.defAcc?.[cur];
+    return accs.find(a => a.id === pref) || accs[0] || null;
+  };
+  const txCur = t => t.cur || "VND";
+  const taxOf = cur => cur === "JPY" ? JP_TAX : 0;
+
+  function depValue(d) {
+    const r = d.rate / 100, tax = taxOf(d.cur), el = monthsSince(d.start);
+    const per = r * d.term / 12 * (1 - tax);
+    let value, n = 0, matured = false;
+    if (d.mode === "end") {
+      if (el >= d.term) { value = d.amount * (1 + per); matured = true; }
+      else value = d.amount * (1 + r * el / 12 * (1 - tax));
+    } else {
+      n = Math.floor(el / d.term);
+      const base = d.amount * Math.pow(1 + per, n);
+      value = base * (1 + r * (el - n * d.term) / 12 * (1 - tax));
+    }
+    const next = addMonths(d.start, d.term * (d.mode === "end" ? 1 : n + 1));
+    const curBase = d.mode === "end" ? d.amount : d.amount * Math.pow(1 + per, n);
+    return { value, matured, next, termInterest: curBase * per };
+  }
+
+  function calc() {
+    const st = S().settings, tx = list("tx"), V = state.view;
+    const sum = k => tx.filter(t => t.kind === k).reduce((a, t) => a + conv(t.amount, txCur(t), V), 0);
+    const spent = sum("out"), gotIn = sum("in"), saved = sum("save");
+    const pIncome = conv(st.income || 0, st.cur, V);
+    const income = Math.max(pIncome, gotIn);
+    const left = income - spent - saved;
+    const limit = st.limit ? conv(st.limit, st.cur, V) : income;
+    const catLimit = cat => st.catLimits?.[cat] ? conv(st.catLimits[cat], st.cur, V) : 0;
+    const byCat = {};
+    tx.filter(t => t.kind === "out").forEach(t => byCat[t.cat] = (byCat[t.cat] || 0) + conv(t.amount, txCur(t), V));
+    const isCur = state.y === today.getFullYear() && state.m === today.getMonth() + 1;
+    const dim = new Date(state.y, state.m, 0).getDate();
+    const dayFrac = isCur ? today.getDate() / dim : (new Date(state.y, state.m - 1, 1) < today ? 1 : 0);
+    const goals = list("goals").map(g => {
+      const [gy, gm] = g.by.split("-").map(Number);
+      const monthsLeft = Math.max(1, (gy - today.getFullYear()) * 12 + (gm - (today.getMonth() + 1)) + 1);
+      const remain = Math.max(0, g.price - (g.saved || 0));
+      return { ...g, monthsLeft, remain, perMonth: remain / monthsLeft, perMonthV: conv(remain / monthsLeft, g.cur, V) };
+    });
+    const totalPerMonth = goals.reduce((a, g) => a + g.perMonthV, 0);
+    const tot = { JPY: 0, VND: 0 }, dep = { JPY: 0, VND: 0 }, depPrin = { JPY: 0, VND: 0 };
+    list("accounts").forEach(a => tot[a.cur] += a.balance || 0);
+    list("deposits").forEach(d => { dep[d.cur] += depValue(d).value; depPrin[d.cur] += d.amount; });
+    const assets = conv(tot.JPY + dep.JPY, "JPY", V) + conv(tot.VND + dep.VND, "VND", V);
+    return { spent, gotIn, saved, income, left, limit, catLimit, byCat, isCur, dim, dayFrac, goals, totalPerMonth, tot, dep, depPrin, assets };
+  }
+
+  function alerts(c) {
+    const out = [], st = S().settings;
+    if (!st.income && !st.limit && !list("tx").length) {
+      out.push(["warn", "Bắt đầu", "Mở Thiết lập để nhập thu nhập và giới hạn chi tiêu, rồi thêm các tài khoản ngân hàng ở Nhật và Việt Nam."]); return out; }
+    if (c.limit) {
+      const r = c.spent / c.limit;
+      if (r >= 1) out.push(["bad", "Vượt mức", `Đã chi ${fmt(c.spent)}, vượt giới hạn ${fmt(c.limit)} là ${fmt(c.spent - c.limit)}.`]);
+      else if (c.isCur && r > c.dayFrac + 0.1) {
+        const proj = c.spent / Math.max(c.dayFrac, 0.03);
+        out.push(["warn", "Tiêu nhanh", `Mới qua ${Math.round(c.dayFrac * 100)}% tháng nhưng đã dùng ${Math.round(r * 100)}% ngân sách. Với tốc độ này cuối tháng sẽ chi khoảng ${fmt(proj)}.`]);
+      }
+      if (c.isCur && r < 1) {
+        const daysLeft = c.dim - today.getDate() + 1;
+        out.push(["good", "Mỗi ngày", `Để không vượt giới hạn, cả nhà có thể chi khoảng ${fmt((c.limit - c.spent) / daysLeft)}/ngày trong ${daysLeft} ngày còn lại.`]);
+      }
+    }
+    Object.keys(st.catLimits || {}).forEach(cat => {
+      const s = c.byCat[cat] || 0, lim = c.catLimit(cat);
+      if (lim && s > lim) out.push(["bad", cat, `Đã chi ${fmt(s)}, vượt hạn mức ${fmt(lim)}.`]);
+      else if (lim && s > lim * 0.85) out.push(["warn", cat, `Đã dùng ${Math.round(s / lim * 100)}% hạn mức (${fmt(s)} / ${fmt(lim)}).`]);
+    });
+    list("accounts").forEach(a => { if (a.balance < 0) out.push(["bad", a.name, `Số dư đang âm: ${fmt(a.balance, a.cur)}. Kiểm tra lại giao dịch hoặc cập nhật số dư.`]); });
+    list("deposits").forEach(d => { const v = depValue(d); const days = Math.round((v.next - today) / 86400000);
+      if (days >= 0 && days <= 14) out.push(["good", "Đáo hạn", `Sổ ${d.bank} (${fmt(d.amount, d.cur)}) đáo hạn ngày ${ymd(v.next).split("-").reverse().join("/")}, còn ${days} ngày.`]); });
+    if (c.goals.length && c.income) {
+      const can = c.income - (c.limit || c.spent);
+      if (c.totalPerMonth > can) out.push(["warn", "Mục tiêu", `Các món đồ muốn mua cần ${fmt(c.totalPerMonth)}/tháng, nhưng thu nhập trừ giới hạn chi chỉ còn ${fmt(Math.max(0, can))}. Cân nhắc giảm chi hoặc lùi thời hạn.`]);
+    }
+    return out;
+  }
+
+  // ---------- Hiển thị ----------
+  function setFig(id, v) {
+    const alt = OTHER(state.view);
+    $(id).textContent = fmt(v);
+    $(id + "Alt").textContent = "≈ " + short(conv(v, state.view, alt), alt);
+  }
+
+  function render() {
+    const c = calc(), st = S().settings, V = state.view;
+    const accs = list("accounts").sort((a, b) => a.cur.localeCompare(b.cur) || a.name.localeCompare(b.name));
+    $("demoBanner").hidden = !isDemo() || !state.loaded;
+    document.querySelectorAll("#viewSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.cur === V));
+    $("monthLabel").textContent = `Tháng ${state.m} · ${state.y}`;
+    setFig("fLeft", c.left); $("fLeft").classList.toggle("neg", c.left < 0);
+    setFig("fSpent", c.spent); setFig("fIncome", c.income); setFig("fAssets", c.assets);
+    const r = c.limit ? c.spent / c.limit : 0;
+    const fill = $("mFill");
+    fill.style.width = Math.min(100, r * 100) + "%";
+    fill.className = "fill" + (r >= 1 ? " bad" : (c.isCur && r > c.dayFrac + 0.1) ? " warn" : "");
+    $("mPace").hidden = !c.isCur || !c.limit;
+    $("mPace").style.left = (c.dayFrac * 100) + "%";
+    $("mLeft").textContent = st.limit ? `Đã dùng ${Math.round(r * 100)}% giới hạn ${fmt(c.limit)}` : "Chưa đặt giới hạn chi tiêu";
+    $("mRight").textContent = c.isCur ? `Vạch đen: hôm nay (ngày ${today.getDate()}/${c.dim})` : (c.saved ? `Đã để dành ${fmt(c.saved)} trong tháng` : "");
+
+    const al = $("alerts"); al.replaceChildren();
+    alerts(c).forEach(([lvl, chip, text]) => {
+      const d = document.createElement("div"); d.className = "alert " + lvl;
+      const s = document.createElement("span"); s.className = "chip"; s.textContent = chip;
+      const t = document.createElement("span"); t.textContent = text;
+      d.append(s, t); al.append(d);
+    });
+
+    // danh mục
+    const cats = $("cats"); cats.replaceChildren();
+    const entries = Object.entries(c.byCat).sort((a, b) => b[1] - a[1]);
+    const max = Math.max(1, ...entries.map(e => Math.max(e[1], c.catLimit(e[0]))));
+    $("catHint").textContent = entries.length ? `${entries.length} danh mục · quy ra ${SYM[V]}` : "";
+    if (!entries.length) { const e = document.createElement("div"); e.className = "empty"; e.textContent = "Chưa có khoản chi nào."; cats.append(e); }
+    entries.forEach(([cat, v]) => {
+      const lim = c.catLimit(cat);
+      const box = document.createElement("div"); box.className = "cat";
+      const row = document.createElement("div"); row.className = "row";
+      const a = document.createElement("span"); a.textContent = cat;
+      const b = document.createElement("span"); b.className = "num"; b.textContent = lim ? `${short(v)} / ${short(lim)}` : short(v) + (c.spent ? ` · ${Math.round(v / c.spent * 100)}%` : "");
+      row.append(a, b);
+      const m = document.createElement("div"); m.className = "meter";
+      const f = document.createElement("div"); f.className = "fill" + (lim && v > lim ? " bad" : lim && v > lim * .85 ? " warn" : "");
+      f.style.width = Math.min(100, v / (lim || max) * 100) + "%";
+      m.append(f); box.append(row, m); cats.append(box);
+    });
+
+    // giao dịch
+    const accName = id => accs.find(a => a.id === id)?.name;
+    const body = $("txBody"); body.replaceChildren();
+    const txs = list("tx").sort((a, b) => b.date.localeCompare(a.date) || (b.at || 0) - (a.at || 0));
+    $("txEmpty").hidden = txs.length > 0;
+    body.parentElement.hidden = !txs.length;
+    $("txCount").textContent = txs.length ? `${txs.length} giao dịch` : "";
+    const whoCells = [];
+    txs.forEach(t => {
+      const tr = document.createElement("tr");
+      const td = (cls, text) => { const x = document.createElement("td"); if (cls) x.className = cls; x.textContent = text; return x; };
+      const [, mm, dd] = t.date.split("-");
+      const noteTd = td("", t.note || "—");
+      const an = t.kind === "transfer" ? `${accName(t.acc) || "?"} → ${accName(t.to) || "?"}` : accName(t.acc);
+      const meta = document.createElement("span"); meta.className = "acc"; meta.textContent = an || "";
+      noteTd.append(meta);
+      if (t.by) whoCells.push([meta, t.by, an]);
+      const catTd = document.createElement("td"); const tag = document.createElement("span"); tag.className = "tag"; tag.textContent = t.cat; catTd.append(tag);
+      const sign = t.kind === "out" ? "−" : t.kind === "in" ? "+" : "→ ";
+      const amtTd = td("amt num " + t.kind, sign + fmt(t.amount, txCur(t)));
+      if (t.kind === "transfer" && t.amount2) { const s = document.createElement("span"); s.className = "acc"; s.textContent = "nhận " + fmt(t.amount2, accs.find(a => a.id === t.to)?.cur || OTHER(txCur(t))); amtTd.append(s); }
+      else if (txCur(t) !== V) { const s = document.createElement("span"); s.className = "acc"; s.textContent = "≈ " + short(conv(t.amount, txCur(t), V)); amtTd.append(s); }
+      const del = document.createElement("td"); const btn = document.createElement("button"); btn.className = "ghost"; btn.textContent = "Xóa"; btn.setAttribute("aria-label", "Xóa giao dịch " + (t.note || t.cat));
+      btn.onclick = () => removeTx(t.id); del.append(btn);
+      tr.append(td("date", `${dd}/${mm}`), noteTd, catTd, amtTd, del);
+      body.append(tr);
+    });
+    if (whoCells.length && user) {
+      user.profiles([...new Set(whoCells.map(w => w[1]))]).then(ps => {
+        whoCells.forEach(([el, id, an]) => { const nm = ps[id]?.isMe ? "bạn" : (ps[id]?.name || "người khác"); el.textContent = (an ? an + " · " : "") + "nhập bởi " + nm; });
+      }).catch(() => {});
+    }
+
+    // tài khoản
+    $("totJPY").textContent = fmt(c.tot.JPY, "JPY"); $("totJPYalt").textContent = "≈ " + short(conv(c.tot.JPY, "JPY", "VND"), "VND");
+    $("totVND").textContent = fmt(c.tot.VND, "VND"); $("totVNDalt").textContent = "≈ " + fmt(conv(c.tot.VND, "VND", "JPY"), "JPY");
+    $("rateHint").textContent = `1 ¥ = ${group(rate())} ₫ (tự nhập)`;
+    if (document.activeElement !== $("rateQuick")) $("rateQuick").value = rate();
+    const al2 = $("accounts"); al2.replaceChildren();
+    if (!accs.length) { const e = document.createElement("div"); e.className = "empty"; e.textContent = "Chưa có tài khoản nào. Thêm tài khoản ngân hàng Nhật (yên) và Việt Nam (đồng) bên dưới."; al2.append(e); }
+    accs.forEach(a => {
+      const row = document.createElement("div"); row.className = "account";
+      const nm = document.createElement("div"); nm.className = "nm"; nm.append(curTag(a.cur), " ", a.name);
+      if (defaultAcc(a.cur)?.id === a.id) { const p = document.createElement("span"); p.className = "pill"; p.textContent = "mặc định"; nm.append(p); }
+      const bal = document.createElement("div"); bal.className = "bal num"; bal.textContent = fmt(a.balance || 0, a.cur);
+      const cv = document.createElement("div"); cv.className = "conv num"; cv.textContent = "≈ " + short(conv(a.balance || 0, a.cur, OTHER(a.cur)), OTHER(a.cur));
+      const edit = document.createElement("button"); edit.className = "ghost"; edit.textContent = "Sửa số dư"; edit.style.justifySelf = "start"; edit.style.paddingLeft = "0";
+      const tools = document.createElement("div"); tools.className = "tools"; tools.hidden = true;
+      const inp = document.createElement("input"); inp.id = "accBal-" + a.id; inp.inputMode = "decimal"; inp.value = a.balance || 0; inp.setAttribute("aria-label", "Số dư mới cho " + a.name);
+      const ok = document.createElement("button"); ok.textContent = "Lưu";
+      const rm = document.createElement("button"); rm.className = "ghost"; rm.textContent = "Xóa tài khoản";
+      edit.onclick = () => { tools.hidden = !tools.hidden; if (!tools.hidden) inp.focus(); };
+      ok.onclick = () => setBalance(a.id, parseMoney(inp.value));
+      rm.onclick = () => confirmClick(rm, "Xóa tài khoản", () => removeAccount(a.id));
+      tools.append(inp, ok, rm);
+      row.append(nm, bal, edit, cv, tools); al2.append(row);
+    });
+
+    // chọn tài khoản trong các form
+    const accOpts = (sel, none) => {
+      const prev = sel.value;
+      sel.replaceChildren(...(none ? [opt("", none)] : []), ...accs.map(a => opt(a.id, `${a.name} (${SYM[a.cur]})`)));
+      if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+    };
+    accOpts($("tAcc"), "Không gắn tài khoản"); accOpts($("xFrom")); accOpts($("xTo")); accOpts($("dFrom"), "Không trích (tiền có sẵn)");
+    if ($("xTo").value === $("xFrom").value && accs.length > 1) $("xTo").value = accs.find(a => a.id !== $("xFrom").value).id;
+    if (!state.accTouched) $("tAcc").value = defaultAcc(state.cur)?.id || "";
+    document.querySelectorAll("#curSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.cur === state.cur));
+    updateRoute(); updateXferHint();
+
+    // mục tiêu
+    const gl = $("goals"); gl.replaceChildren();
+    const can = c.income - (c.limit || c.spent);
+    if (!c.goals.length) { const e = document.createElement("div"); e.className = "empty"; e.textContent = "Thêm món đồ muốn mua để biết mỗi tháng cần để dành bao nhiêu."; gl.append(e); }
+    let cum = 0;
+    c.goals.forEach(g => {
+      cum += g.perMonthV;
+      const box = document.createElement("div"); box.className = "goal";
+      const top = document.createElement("div"); top.className = "top";
+      const nm = document.createElement("span"); nm.className = "name"; nm.textContent = g.name;
+      const stt = document.createElement("span"); stt.className = "status";
+      if (g.remain <= 0) { stt.classList.add("ok"); stt.textContent = "Đủ tiền"; }
+      else if (!c.income) { stt.classList.add("tight"); stt.textContent = "Chưa có thu nhập"; }
+      else if (cum <= can) { stt.classList.add("ok"); stt.textContent = "Khả thi"; }
+      else if (cum <= c.income - c.spent + c.saved) { stt.classList.add("tight"); stt.textContent = "Hơi căng"; }
+      else { stt.classList.add("no"); stt.textContent = "Khó đạt"; }
+      top.append(nm, stt);
+      const meta = document.createElement("div"); meta.className = "hint num";
+      const [gy, gm] = g.by.split("-");
+      meta.textContent = `${short(g.saved || 0, g.cur)} / ${short(g.price, g.cur)} · trước tháng ${+gm}/${gy}`;
+      const m = document.createElement("div"); m.className = "meter"; m.style.height = "7px";
+      const f = document.createElement("div"); f.className = "fill"; f.style.width = Math.min(100, (g.saved || 0) / g.price * 100) + "%"; m.append(f);
+      const need = document.createElement("div"); need.className = "need";
+      if (g.remain > 0) {
+        need.append("Cần để dành "); const b = document.createElement("b"); b.textContent = fmt(g.perMonth, g.cur); need.append(b);
+        if (g.cur !== V) need.append(` (≈ ${short(g.perMonthV)})`);
+        need.append(` mỗi tháng trong ${g.monthsLeft} tháng.`);
+      } else need.textContent = "Đã để dành đủ cho món này.";
+      const acts = document.createElement("div"); acts.className = "acts";
+      const inp = document.createElement("input"); inp.placeholder = "Số tiền " + SYM[g.cur]; inp.inputMode = "decimal"; inp.id = "gAdd-" + g.id; inp.setAttribute("aria-label", "Số tiền góp cho " + g.name);
+      const add = document.createElement("button"); add.textContent = "Góp vào";
+      add.onclick = () => contribute(g.id, parseMoney(inp.value));
+      const rm = document.createElement("button"); rm.className = "ghost"; rm.textContent = "Xóa";
+      rm.onclick = () => confirmClick(rm, "Xóa", () => removeGoal(g.id));
+      acts.append(inp, add, rm);
+      box.append(top, meta, m, need, acts); gl.append(box);
+    });
+
+    // danh mục trong form
+    const sel = $("tCat"), prev = sel.value;
+    const catList = state.kind === "in" ? IN_CATS : state.kind === "save" ? ["Tiết kiệm"] : CATS;
+    if (sel.dataset.kind !== state.kind) {
+      sel.replaceChildren(...catList.map(x => opt(x, x)));
+      sel.dataset.kind = state.kind;
+      if (catList.includes(prev)) sel.value = prev;
+    }
+
+    renderDeposits(c);
+    renderCalc();
+  }
+
+  function updateRoute() {
+    const a = list("accounts").find(x => x.id === $("tAcc").value);
+    const r = $("route"); r.replaceChildren();
+    if (!a) { r.textContent = list("accounts").some(x => x.cur === state.cur) ? "Không gắn tài khoản: số dư không thay đổi." : `Chưa có tài khoản ${state.cur === "JPY" ? "tiền yên (Nhật)" : "tiền đồng (Việt Nam)"}. Thêm ở mục Tài khoản ngân hàng để tiền tự cộng/trừ vào đó.`; return; }
+    const verb = state.kind === "out" ? "Trừ từ" : "Cộng vào";
+    r.append(verb + " "); const b = document.createElement("b"); b.textContent = a.name; r.append(b);
+    if (a.cur !== state.cur) r.append(` (quy đổi ${SYM[state.cur]} → ${SYM[a.cur]} theo tỷ giá)`);
+  }
+  function updateXferHint() {
+    const accs = list("accounts");
+    const f = accs.find(a => a.id === $("xFrom").value), t = accs.find(a => a.id === $("xTo").value);
+    const amt = parseMoney($("xAmt").value);
+    if (f && t && amt > 0) $("xHint").textContent = `Ước tính nhận: ${fmt(conv(amt, f.cur, t.cur), t.cur)} theo tỷ giá ${group(rate())} ₫/¥. Nếu ngân hàng thu phí hoặc tỷ giá khác, nhập số thực nhận.`;
+    else $("xHint").textContent = accs.length < 2 ? "Cần ít nhất 2 tài khoản để chuyển tiền." : "Để trống ô “nhận được” thì app tự quy đổi theo tỷ giá.";
+  }
+
+  // ---------- Sổ tiết kiệm ----------
+  function renderDeposits(c) {
+    $("depJPY").textContent = fmt(c.dep.JPY, "JPY");
+    $("depJPYsub").textContent = c.depPrin.JPY ? `gốc ${fmt(c.depPrin.JPY, "JPY")} · lãi đã sau thuế` : "";
+    $("depVND").textContent = fmt(c.dep.VND, "VND");
+    $("depVNDsub").textContent = c.depPrin.VND ? `gốc ${short(c.depPrin.VND, "VND")}` : "";
+    const box = $("deps"); box.replaceChildren();
+    const deps = list("deposits").sort((a, b) => depValue(a).next - depValue(b).next);
+    $("depHint").textContent = deps.length ? `${deps.length} sổ · giá trị tính đến hôm nay` : "";
+    if (!deps.length) { const e = document.createElement("div"); e.className = "empty"; e.textContent = "Chưa có sổ tiết kiệm nào. Thêm sổ bên dưới để theo dõi tiền lãi và ngày đáo hạn."; box.append(e); }
+    deps.forEach(d => {
+      const v = depValue(d);
+      const el = document.createElement("div"); el.className = "dep";
+      const top = document.createElement("div"); top.className = "top";
+      const nm = document.createElement("span"); nm.className = "bank"; nm.append(curTag(d.cur), " ", d.bank);
+      const amt = document.createElement("span"); amt.className = "num"; amt.textContent = fmt(v.value, d.cur);
+      top.append(nm, amt);
+      const facts = document.createElement("div"); facts.className = "facts";
+      const fact = (k, val) => { const x = document.createElement("div"); const s = document.createElement("span"); s.textContent = k; x.append(s, val); return x; };
+      facts.append(
+        fact("Gốc · lãi suất", `${short(d.amount, d.cur)} · ${String(d.rate).replace(".", ",")}%`),
+        fact(d.mode === "end" && v.matured ? "Đã đáo hạn" : "Đáo hạn kỳ tới", `${pad(v.next.getDate())}/${pad(v.next.getMonth() + 1)}/${v.next.getFullYear()}`),
+        fact("Lãi kỳ này" + (d.cur === "JPY" ? " (sau thuế)" : ""), fmt(v.termInterest, d.cur))
+      );
+      const hint = document.createElement("div"); hint.className = "hint";
+      hint.textContent = `Kỳ hạn ${d.term} tháng · gửi ngày ${dmy(d.start)} · ${d.mode === "end" ? "rút lãi khi đáo hạn" : "tái tục cả gốc và lãi"}`;
+      const acts = document.createElement("div"); acts.className = "acts";
+      const close = document.createElement("button"); close.className = "small"; close.textContent = "Tất toán về tài khoản";
+      close.onclick = () => confirmClick(close, "Tất toán về tài khoản", () => settleDeposit(d.id));
+      const calcB = document.createElement("button"); calcB.className = "small"; calcB.textContent = "Tính trước tương lai";
+      calcB.onclick = () => fillCalc({ amount: d.amount, cur: d.cur, rate: d.rate, mode: d.term >= 12 ? "year" : "month" });
+      const rm = document.createElement("button"); rm.className = "ghost"; rm.textContent = "Xóa";
+      rm.onclick = () => confirmClick(rm, "Xóa", () => removeDeposit(d.id));
+      acts.append(close, calcB, rm);
+      el.append(top, facts, hint, acts); box.append(el);
+    });
+  }
+
+  // ---------- Bảng tính lãi ----------
+  function simulate({ amount, rate: r, years, monthly, mode, tax }) {
+    r = r / 100; const t = tax ? JP_TAX : 0;
+    let bal = amount, prin = amount, pending = 0, cumInt = 0;
+    const rows = [];
+    for (let y = 1; y <= years; y++) {
+      let yInt = 0;
+      for (let m = 1; m <= 12; m++) {
+        if (monthly > 0) { bal += monthly; prin += monthly; }
+        const i = bal * r / 12 * (1 - t);
+        if (mode === "month") { bal += i; yInt += i; }
+        else { pending += i; yInt += i; }
+      }
+      if (mode === "year") { bal += pending; pending = 0; }
+      if (mode === "simple") { pending = 0; }
+      cumInt += yInt;
+      rows.push({ y, prin, yInt, cumInt, total: mode === "simple" ? prin + cumInt : bal });
+    }
+    return rows;
+  }
+  function calcInputs() {
+    return {
+      amount: Math.max(0, parseMoney($("cAmt").value) || 0),
+      cur: $("cCur").value,
+      rate: Math.max(0, parsePct($("cRate").value) || 0),
+      years: Math.min(40, Math.max(1, parseInt($("cYears").value) || 1)),
+      monthly: Math.max(0, parseMoney($("cMonthly").value) || 0),
+      mode: $("cMode").value,
+      tax: $("cTax").checked
+    };
+  }
+  function renderCalc() {
+    const p = calcInputs();
+    const rows = simulate(p);
+    const last = rows[rows.length - 1] || { prin: p.amount, cumInt: 0, total: p.amount };
+    $("cTotal").textContent = fmt(last.total, p.cur);
+    $("cTotalAlt").textContent = `sau ${p.years} năm · ≈ ${short(conv(last.total, p.cur, OTHER(p.cur)), OTHER(p.cur))}`;
+    $("cPrin").textContent = fmt(last.prin, p.cur);
+    $("cInt").textContent = fmt(last.total - last.prin, p.cur);
+    const body = $("cBody"); body.replaceChildren();
+    const max = Math.max(1, last.total);
+    rows.forEach(r => {
+      const tr = document.createElement("tr");
+      const td = (t, cls) => { const x = document.createElement("td"); x.className = cls || "r num"; x.textContent = t; return x; };
+      const barTd = document.createElement("td");
+      const bar = document.createElement("div"); bar.className = "bar";
+      const ip = document.createElement("i"); ip.className = "p"; ip.style.width = (r.prin / max * 100) + "%";
+      const ii = document.createElement("i"); ii.className = "n"; ii.style.width = (Math.max(0, r.total - r.prin) / max * 100) + "%";
+      bar.append(ip, ii); barTd.append(bar);
+      tr.append(td(String(r.y), "num"), td(short(r.prin, p.cur)), td(short(r.yInt, p.cur)), td(short(r.total - r.prin, p.cur)), td(fmt(r.total, p.cur)), barTd);
+      body.append(tr);
+    });
+  }
+  function fillCalc({ amount, cur, rate: r, mode }) {
+    if (amount != null) $("cAmt").value = cur === "JPY" ? group(amount) : short(amount, "VND").replace(" ₫", "");
+    if (cur) { $("cCur").value = cur; $("cTax").checked = cur === "JPY"; }
+    if (r != null) $("cRate").value = String(r).replace(".", ",");
+    if (mode) $("cMode").value = mode;
+    showTab("save"); renderCalc();
+    $("calcForm").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  $("calcForm").oninput = renderCalc;
+  $("cCur").onchange = () => { $("cTax").checked = $("cCur").value === "JPY"; renderCalc(); };
+
+  // ---------- Lãi suất ngân hàng ----------
+  function renderRates() {
+    const R = M.rates;
+    document.querySelectorAll("#rateSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.c === state.rateC));
+    $("ratesEmpty").hidden = !!R; $("ratesHead").parentElement.hidden = !R;
+    $("adviseBtn").disabled = !R;
+    const dl = $("bankList"); dl.replaceChildren();
+    if (!R) { $("ratesDate").textContent = ""; $("ratesNote").textContent = ""; return; }
+    [...(R.vn || []), ...(R.jp || [])].forEach(x => dl.append(opt(x.bank, "")));
+    $("ratesDate").textContent = "Cập nhật " + dmy(R.updated);
+    const vn = state.rateC === "vn";
+    const rows = [...(vn ? R.vn : R.jp) || []].sort((a, b) => (b.m12 || 0) - (a.m12 || 0));
+    const head = $("ratesHead"); head.replaceChildren();
+    const hr = document.createElement("tr");
+    (vn ? ["Ngân hàng", "6 tháng", "12 tháng", ""] : ["Ngân hàng", "1 năm", ""]).forEach((h, i) => { const th = document.createElement("th"); th.textContent = h; if (i && h) th.className = "r"; hr.append(th); });
+    head.append(hr);
+    const body = $("ratesBody"); body.replaceChildren();
+    rows.forEach((x, i) => {
+      const tr = document.createElement("tr"); if (i < 3) tr.className = "top";
+      const b = document.createElement("td"); b.className = "bank"; b.textContent = x.bank;
+      if (x.note) { const n = document.createElement("span"); n.className = "note"; n.textContent = x.note; b.append(n); }
+      const pct = v => v ? v.toLocaleString("vi-VN", { minimumFractionDigits: 2, maximumFractionDigits: 3 }) + "%" : "—";
+      const cells = [b];
+      if (vn) { const a = document.createElement("td"); a.className = "r num"; a.textContent = pct(x.m6); cells.push(a); }
+      const c12 = document.createElement("td"); c12.className = "r num"; c12.textContent = pct(x.m12); c12.style.fontWeight = "600"; cells.push(c12);
+      const act = document.createElement("td"); act.className = "r";
+      const t = document.createElement("button"); t.className = "small"; t.textContent = "Tính thử";
+      t.onclick = () => fillCalc({ cur: vn ? "VND" : "JPY", rate: x.m12, mode: "year", amount: vn ? (parseMoney($("cAmt").value) && $("cCur").value === "VND" ? null : 100000000) : ($("cCur").value === "JPY" ? null : 1000000) });
+      act.append(t); cells.push(act);
+      tr.append(...cells); body.append(tr);
+    });
+    $("ratesNote").textContent = (vn ? R.vnNote : R.jpNote) || "";
+    const src = $("sources"); src.replaceChildren();
+    (R.sources || []).forEach(s => { const a = document.createElement("a"); a.href = s.url; a.target = "_blank"; a.rel = "noopener"; a.textContent = s.title; src.append(a); });
+  }
+  document.querySelectorAll("#rateSeg button").forEach(b => b.onclick = () => { state.rateC = b.dataset.c; renderRates(); });
+
+  function fillSettings() {
+    const st = S().settings;
+    $("sCur").value = st.cur || "JPY";
+    $("sIncome").value = st.income ? group(st.income) : "";
+    $("sLimit").value = st.limit ? group(st.limit) : "";
+    $("sRate").value = st.rate || DEFAULT_RATE;
+    ["JPY", "VND"].forEach(cur => {
+      const sel = $("sDef" + cur);
+      sel.replaceChildren(...list("accounts").filter(a => a.cur === cur).map(a => opt(a.id, a.name)));
+      if (!sel.options.length) sel.append(opt("", "Chưa có tài khoản " + SYM[cur]));
+      sel.value = defaultAcc(cur)?.id || "";
+    });
+    const box = $("catLimits"); box.replaceChildren();
+    CATS.forEach((c, i) => {
+      const l = document.createElement("label"); l.htmlFor = "cl" + i; l.textContent = c;
+      const inp = document.createElement("input"); inp.id = "cl" + i; inp.dataset.cat = c; inp.inputMode = "decimal"; inp.placeholder = "không giới hạn";
+      inp.value = st.catLimits?.[c] ? group(st.catLimits[c]) : "";
+      l.append(inp); box.append(l);
+    });
+  }
+
+  let toastT;
+  function toast(t) { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => el.hidden = true, 3600); }
+  function confirmClick(btn, label, fn) {
+    if (btn.dataset.armed) { delete btn.dataset.armed; fn(); return; }
+    btn.dataset.armed = "1"; btn.textContent = "Bấm lần nữa để xác nhận";
+    setTimeout(() => { if (btn.dataset.armed) { delete btn.dataset.armed; btn.textContent = label; } }, 3000);
+  }
+
+  // ---------- Hành động ----------
+  function bump(id, amt, cur) {
+    const a = M.accounts[id]; if (!a) return;
+    repo.put("accounts", { ...a, balance: Math.round((a.balance || 0) + conv(amt, cur, a.cur)) });
+  }
+  // Áp ảnh hưởng của giao dịch lên số dư (sign = 1 khi thêm, -1 khi xóa)
+  function applyTx(t, sign) {
+    if (t.kind === "out") bump(t.acc, -sign * t.amount, txCur(t));
+    else if (t.kind === "in" || t.kind === "save") bump(t.acc, sign * t.amount, txCur(t));
+    else if (t.kind === "transfer") {
+      bump(t.acc, -sign * t.amount, txCur(t));
+      const to = M.accounts[t.to];
+      if (to) bump(t.to, sign * (t.amount2 ?? conv(t.amount, txCur(t), to.cur)), to.cur);
+    }
+  }
+  async function addTx(tx) {
+    if (!await ensureReal()) return;
+    tx.month = tx.date.slice(0, 7); tx.at = Date.now(); if (state.me) tx.by = state.me;
+    const [ty, tm] = tx.date.split("-").map(Number);
+    if (ty !== state.y || tm !== state.m) { state.y = ty; state.m = tm; repo.watchMonth(); }
+    repo.put("tx", tx);
+    applyTx(tx, 1);
+    render();
+  }
+  async function removeTx(id) {
+    if (isDemo()) return demoToast();
+    const t = M.tx[id]; if (!t) return;
+    repo.del("tx", id); applyTx(t, -1);
+    render(); toast("Đã xóa giao dịch và hoàn lại số dư tài khoản");
+  }
+  async function contribute(gid, amt) {
+    if (!(amt > 0)) { toast("Nhập số tiền muốn góp"); return; }
+    if (isDemo()) return demoToast();
+    const g = M.goals[gid]; if (!g) return;
+    repo.put("goals", { ...g, saved: (g.saved || 0) + amt });
+    await addTx({ id: uid(), kind: "save", cat: "Tiết kiệm", amount: amt, cur: g.cur, note: "Góp cho: " + g.name, date: ymd(today) });
+    toast(`Đã góp ${fmt(amt, g.cur)} cho ${g.name}`);
+  }
+  function removeGoal(gid) { if (isDemo()) return demoToast(); repo.del("goals", gid); render(); }
+  function setBalance(id, v) {
+    if (isDemo()) return demoToast();
+    if (!isFinite(v)) { toast("Số dư chưa hợp lệ"); return; }
+    const a = M.accounts[id]; if (!a) return;
+    repo.put("accounts", { ...a, balance: v }); render(); toast(`Đã cập nhật số dư ${a.name}`);
+  }
+  function removeAccount(id) { if (isDemo()) return demoToast(); repo.del("accounts", id); render(); toast("Đã xóa tài khoản"); }
+  function settleDeposit(id) {
+    if (isDemo()) return demoToast();
+    const d = M.deposits[id]; if (!d) return;
+    const v = depValue(d);
+    const to = (d.from && M.accounts[d.from]) || defaultAcc(d.cur);
+    if (to) bump(to.id, v.value, d.cur);
+    repo.del("deposits", id); render();
+    toast(to ? `Đã tất toán ${fmt(v.value, d.cur)} về ${to.name}` : "Đã tất toán (không có tài khoản để cộng tiền)");
+  }
+  function removeDeposit(id) { if (isDemo()) return demoToast(); repo.del("deposits", id); render(); }
+  const demoToast = () => toast("Đây là dữ liệu mẫu. Bấm “Bắt đầu với số liệu của tôi” để dùng thật.");
+
+  document.querySelectorAll("#kindSeg button").forEach(b => b.onclick = () => {
+    state.kind = b.dataset.kind;
+    document.querySelectorAll("#kindSeg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    render();
+  });
+  document.querySelectorAll("#curSeg button").forEach(b => b.onclick = () => {
+    state.cur = b.dataset.cur; state.accTouched = false; render();
+  });
+  document.querySelectorAll("#viewSeg button").forEach(b => b.onclick = () => {
+    state.view = b.dataset.cur;
+    try { localStorage.setItem("sothuchi:view", state.view); } catch {}
+    render();
+  });
+  $("tAcc").onchange = () => {
+    state.accTouched = true;
+    const a = M.accounts[$("tAcc").value] || D.accounts[$("tAcc").value];
+    if (a) state.cur = a.cur;
+    render();
+  };
+  $("tDate").value = ymd(today);
+  $("dStart").value = ymd(today);
+  $("addForm").onsubmit = e => {
+    e.preventDefault();
+    const amount = parseMoney($("tAmount").value);
+    if (!(amount > 0)) { toast("Số tiền chưa hợp lệ. Ví dụ: 1500, 3man, 45k, 1.2tr"); return; }
+    const tx = { id: uid(), kind: state.kind, cat: $("tCat").value, amount, cur: state.cur, note: $("tNote").value.trim(), date: $("tDate").value || ymd(today) };
+    if ($("tAcc").value) tx.acc = $("tAcc").value;
+    const accName = list("accounts").find(a => a.id === tx.acc)?.name;
+    addTx(tx).then(() => { if (accName && !isDemo()) toast(`${state.kind === "out" ? "Đã trừ" : "Đã cộng"} ${fmt(amount, tx.cur)} ${state.kind === "out" ? "từ" : "vào"} ${accName}`); });
+    $("tAmount").value = ""; $("tNote").value = ""; $("tAmount").focus();
+  };
+  $("accForm").onsubmit = async e => {
+    e.preventDefault();
+    if (!await ensureReal()) return;
+    const bal = parseMoney($("aBal").value);
+    repo.put("accounts", { id: uid(), name: $("aName").value.trim(), cur: $("aCur").value, balance: isFinite(bal) ? bal : 0 });
+    render(); $("accForm").reset(); $("aName").focus(); toast("Đã thêm tài khoản");
+  };
+  ["xFrom", "xTo"].forEach(id => $(id).onchange = updateXferHint);
+  $("xAmt").oninput = updateXferHint;
+  $("xferForm").onsubmit = e => {
+    e.preventDefault();
+    if (isDemo()) return demoToast();
+    const accs = list("accounts");
+    const f = accs.find(a => a.id === $("xFrom").value), t = accs.find(a => a.id === $("xTo").value);
+    const amt = parseMoney($("xAmt").value), got = parseMoney($("xGot").value);
+    if (!f || !t || f.id === t.id) { toast("Chọn hai tài khoản khác nhau"); return; }
+    if (!(amt > 0)) { toast("Số tiền gửi đi chưa hợp lệ"); return; }
+    const amount2 = got > 0 ? got : Math.round(conv(amt, f.cur, t.cur));
+    addTx({ id: uid(), kind: "transfer", cat: "Chuyển tiền", amount: amt, cur: f.cur, acc: f.id, to: t.id, amount2, note: `Chuyển ${f.name} → ${t.name}`, date: ymd(today) });
+    $("xAmt").value = ""; $("xGot").value = "";
+    toast(`Đã ghi: ${fmt(amt, f.cur)} → ${fmt(amount2, t.cur)}`);
+  };
+  $("rateSave").onclick = async () => {
+    const v = parsePct($("rateQuick").value);
+    if (!(v > 0)) { toast("Tỷ giá chưa hợp lệ, ví dụ 172"); return; }
+    if (!await ensureReal()) return;
+    repo.setSettings({ ...M.settings, rate: v }); render(); toast(`Đã đặt tỷ giá 1 ¥ = ${group(v)} ₫`);
+  };
+  $("goalForm").onsubmit = async e => {
+    e.preventDefault();
+    const price = parseMoney($("gPrice").value);
+    if (!(price > 0)) { toast("Giá chưa hợp lệ. Ví dụ: 12man hoặc 30tr"); return; }
+    if (!await ensureReal()) return;
+    repo.put("goals", { id: uid(), name: $("gName").value.trim(), price, cur: $("gCur").value, saved: 0, by: $("gBy").value });
+    render(); $("goalForm").reset(); setGoalMin();
+  };
+  $("depForm").onsubmit = async e => {
+    e.preventDefault();
+    const amount = parseMoney($("dAmt").value), r = parsePct($("dRate").value);
+    if (!(amount > 0)) { toast("Số tiền gửi chưa hợp lệ"); return; }
+    if (!(r >= 0 && r < 50)) { toast("Lãi suất chưa hợp lệ, ví dụ 6 hoặc 1,25"); return; }
+    if (!await ensureReal()) return;
+    const d = { id: uid(), bank: $("dBank").value.trim(), cur: $("dCur").value, amount, rate: r, term: +$("dTerm").value, start: $("dStart").value || ymd(today), mode: $("dMode").value };
+    if ($("dFrom").value) { d.from = $("dFrom").value; bump(d.from, -amount, d.cur); }
+    repo.put("deposits", d);
+    render(); $("depForm").reset(); $("dStart").value = ymd(today); $("dTerm").value = "12";
+    toast(`Đã thêm sổ tiết kiệm ${d.bank}`);
+  };
+  function setGoalMin() { const v = mkey(today.getFullYear(), today.getMonth() + 1); $("gBy").min = v; if (!$("gBy").value) $("gBy").value = mkey(today.getFullYear() + (today.getMonth() + 6 > 11 ? 1 : 0), ((today.getMonth() + 6) % 12) + 1); }
+  setGoalMin();
+  const moveMonth = d => { state.m += d; if (state.m < 1) { state.m = 12; state.y--; } if (state.m > 12) { state.m = 1; state.y++; } D = demoData(); if (repo) repo.watchMonth(); render(); };
+  $("prevM").onclick = () => moveMonth(-1);
+  $("nextM").onclick = () => moveMonth(1);
+  $("toggleSettings").onclick = () => { const s = $("settings"); s.hidden = !s.hidden; if (!s.hidden) fillSettings(); };
+  $("startReal").onclick = ensureReal;
+  $("saveSettings").onclick = async () => {
+    if (!await ensureReal()) return;
+    const val = id => { const v = parseMoney($(id).value); return v > 0 ? v : 0; };
+    const st = { ...M.settings };
+    st.cur = $("sCur").value;
+    st.income = val("sIncome"); st.limit = val("sLimit");
+    const r = parsePct($("sRate").value); if (r > 0) st.rate = r;
+    st.defAcc = { JPY: $("sDefJPY").value, VND: $("sDefVND").value };
+    const cl = {}; document.querySelectorAll("#catLimits input").forEach(i => { const v = parseMoney(i.value); if (v > 0) cl[i.dataset.cat] = v; });
+    st.catLimits = cl;
+    await repo.setSettings(st); state.accTouched = false; render(); $("settings").hidden = true; toast("Đã lưu thiết lập");
+  };
+
+  // ---------- Tab ----------
+  function showTab(t) {
+    const save = t === "save";
+    $("pMain").hidden = save; $("pSave").hidden = !save;
+    $("tabMain").setAttribute("aria-selected", !save); $("tabSave").setAttribute("aria-selected", save);
+  }
+  $("tabMain").onclick = () => showTab("main");
+  $("tabSave").onclick = () => showTab("save");
+  if (location.hash === "#tietkiem") showTab("save");
+
+  // ---------- Cố vấn AI (Claude) ----------
+  let sample = null, busy = false;
+  function ratesSummary() {
+    const R = M.rates; if (!R) return "Chưa có bảng lãi suất.";
+    const line = (arr, k6) => [...arr].sort((a, b) => (b.m12 || 0) - (a.m12 || 0)).map(x => `${x.bank}: ${k6 && x.m6 ? x.m6 + "% (6T), " : ""}${x.m12}%${k6 ? " (12T)" : " (1 năm)"}${x.note ? " [" + x.note + "]" : ""}`).join("; ");
+    return `Lãi suất tham khảo ngày ${R.updated}.\nViệt Nam (%/năm): ${line(R.vn || [], true)}.\nNhật (%/năm, trước thuế 20,315%): ${line(R.jp || [], false)}.`;
+  }
+  function context() {
+    const c = calc(), st = S().settings;
+    return [
+      `Gia đình người Việt (hai vợ chồng) đang sống ở Nhật, có tiền ở cả tài khoản Nhật (yên) và Việt Nam (đồng).`,
+      `Hôm nay: ${ymd(today)}. Đang xem tháng ${state.m}/${state.y}${c.isCur ? ` (đã qua ${Math.round(c.dayFrac * 100)}% tháng)` : ""}. Số liệu quy ra ${state.view}, tỷ giá người dùng nhập: 1 JPY = ${rate()} VND.`,
+      `Thu nhập tháng: ${fmt(c.income)}. Giới hạn chi tiêu: ${st.limit ? fmt(c.limit) : "chưa đặt"}.`,
+      `Đã chi: ${fmt(c.spent)}. Đã để dành trong tháng: ${fmt(c.saved)}. Còn lại: ${fmt(c.left)}.`,
+      `Tài khoản: ` + (list("accounts").map(a => `${a.name} ${fmt(a.balance || 0, a.cur)}`).join("; ") || "chưa có") + `. Tổng bên Nhật ${fmt(c.tot.JPY, "JPY")}, bên Việt Nam ${fmt(c.tot.VND, "VND")}.`,
+      `Sổ tiết kiệm: ` + (list("deposits").map(d => `${d.bank} ${fmt(d.amount, d.cur)} lãi ${d.rate}%/năm kỳ hạn ${d.term} tháng, gửi ${d.start}, hiện ≈ ${fmt(depValue(d).value, d.cur)}`).join("; ") || "chưa có"),
+      `Chi theo danh mục: ` + (Object.entries(c.byCat).map(([k, v]) => `${k} ${fmt(v)}${c.catLimit(k) ? ` (hạn mức ${fmt(c.catLimit(k))})` : ""}`).join("; ") || "chưa có"),
+      `Món đồ muốn mua: ` + (c.goals.map(g => `${g.name}: giá ${fmt(g.price, g.cur)}, đã để dành ${fmt(g.saved || 0, g.cur)}, hạn tháng ${g.by}, cần ${fmt(g.perMonth, g.cur)}/tháng`).join("; ") || "chưa có"),
+      `Giao dịch gần đây: ` + (list("tx").sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30).map(t => `${t.date} ${{ out: "chi", in: "thu", save: "tiết kiệm", transfer: "chuyển tiền" }[t.kind]} ${fmt(t.amount, txCur(t))} [${t.cat}] ${t.note || ""}`).join(" | ") || "chưa có"),
+      ratesSummary()
+    ].join("\n");
+  }
+  const SYS = () => `Bạn là cố vấn tài chính gia đình thân thiện, nói tiếng Việt, ngắn gọn và cụ thể bằng con số. Gia đình sống ở Nhật nên nêu tiền yên (¥) cho chi tiêu bên Nhật và đồng (₫) cho tiền ở Việt Nam, quy đổi khi cần theo tỷ giá họ nhập.
+Dựa trên số liệu thật dưới đây. Nếu họ đang tiêu quá đà, nói thẳng và chỉ ra khoản cụ thể nên giảm, giảm bao nhiêu.
+Khi nói về gửi tiết kiệm: so sánh theo bảng lãi suất tham khảo, nhắc rằng tiền lãi ở Nhật bị trừ thuế 20,315% còn ở Việt Nam thì không, lãi online thường cao hơn tại quầy, các mức ưu đãi thường kèm điều kiện (khách mới, số tiền tối thiểu), bảo hiểm tiền gửi (Nhật: 1.000 man yên/người/ngân hàng; Việt Nam: 125 triệu ₫/người/ngân hàng), và rủi ro tỷ giá khi chuyển yên sang đồng. Khuyên kiểm tra lại lãi suất trên website ngân hàng trước khi gửi.
+Trả lời dạng văn bản thường (không dùng markdown như ** hay #), tối đa khoảng 220 chữ, dùng gạch đầu dòng "- " khi liệt kê.
+Không đưa lời khuyên đầu tư chứng khoán/tiền số cụ thể và không dự đoán tỷ giá.
+
+SỐ LIỆU CỦA GIA ĐÌNH${isDemo() ? " (đây là DỮ LIỆU MẪU, hãy nhắc ngắn gọn điều này)" : ""}:
+${context()}`;
+  function addMsg(cls, text) { const d = document.createElement("div"); d.className = "msg " + cls; d.textContent = text; $("chat").append(d); $("chat").scrollTop = $("chat").scrollHeight; return d; }
+  function errText(e) {
+    return e?.code === "not_granted" ? "Bạn chưa cho phép trang này hỏi Claude. Có thể bật lại trong menu Quyền của artifact."
+      : e?.code === "rate_limited" ? "Đang hỏi hơi nhiều, đợi một chút rồi thử lại nhé."
+      : "Chưa lấy được câu trả lời: " + (e?.message || e?.code || "lỗi không rõ");
+  }
+  async function ask(q) {
+    if (busy || !q) return;
+    if (!sample) { addMsg("err", "Cố vấn AI chỉ chạy khi mở trang này trên claude.ai và đã cho phép trang hỏi Claude."); return; }
+    busy = true; $("askBtn").disabled = true;
+    addMsg("me", q);
+    const out = addMsg("ai", "Đang xem số liệu…");
+    const msgs = [...state.chat.slice(-6), { role: "user", content: SYS() + "\n\nCÂU HỎI: " + q }];
+    try {
+      const res = await sample(msgs, { cache: false, onText: ({ text }) => { out.textContent = text; $("chat").scrollTop = $("chat").scrollHeight; } });
+      out.textContent = res.text;
+      state.chat.push({ role: "user", content: q }, { role: "assistant", content: res.text });
+    } catch (e) { out.className = "msg err"; out.textContent = errText(e); }
+    finally { busy = false; $("askBtn").disabled = false; }
+  }
+  $("quick").onclick = e => { const b = e.target.closest("button[data-q]"); if (b) ask(b.dataset.q); };
+  $("askForm").onsubmit = e => { e.preventDefault(); const q = $("askInput").value.trim(); $("askInput").value = ""; ask(q); };
+  $("adviseBtn").onclick = async () => {
+    const box = $("advice");
+    if (!sample) { box.hidden = false; box.textContent = "Cố vấn AI chỉ chạy khi mở trang này trên claude.ai."; return; }
+    $("adviseBtn").disabled = true; box.hidden = false; box.textContent = "Đang so sánh lãi suất…";
+    const q = "Dựa vào bảng lãi suất tham khảo, tiền đang có ở Nhật và Việt Nam, và các sổ tiết kiệm hiện tại: gia đình tôi nên gửi tiết kiệm ở ngân hàng nào bên Việt Nam và bên Nhật, kỳ hạn bao lâu, khoảng bao nhiêu tiền mỗi bên? Nêu 2-3 lựa chọn cụ thể cho mỗi nước và ước tính tiền lãi 1 năm.";
+    try {
+      const res = await sample(SYS() + "\n\nCÂU HỎI: " + q, { cache: false, onText: ({ text }) => box.textContent = text });
+      box.textContent = res.text;
+    } catch (e) { box.textContent = errText(e); }
+    finally { $("adviseBtn").disabled = !M.rates; }
+  };
+
+  // ---------- Khởi động ----------
+  try { const v = localStorage.getItem("sothuchi:view"); if (v === "JPY" || v === "VND") state.view = v; } catch {}
+  render(); renderRates();
+  (async () => {
+    try {
+      if (window.claude?.use) {
+        [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+        if (user) { try { state.me = await user.id(); } catch {} }
+      }
+    } catch (e) { console.warn(e); }
+    repo = db ? cloudRepo() : localRepo();
+    repo.start();
+    try { sample = window.claude?.use ? await window.claude.use("sample") : null; } catch { sample = null; }
+    $("aiNote").textContent = sample ? "" : "Cố vấn AI hoạt động khi mở trang trên claude.ai.";
+    document.querySelectorAll("#quick button, #askBtn").forEach(b => b.disabled = !sample);
+  })();
+})();
+</script>

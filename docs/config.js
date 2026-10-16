@@ -19,5 +19,5 @@ window.SO_THU_CHI_CONFIG = {
   aiProxyUrl: "https://so-thu-chi-ai.duchieu11099.workers.dev",
   // Khóa VAPID cho Web Push (lấy từ Firebase Console → Project Settings → Cloud Messaging →
   // Web Push certificates → Generate key pair → copy "Key pair"). Để trống "" để tắt thông báo.
-  vapidKey: ""
+  vapidKey: "BIayDKlXGpG_ZZjX1JQCADjuvhMk3IuizewOaQUBBI5jV9JqFIo2LRVAyZ9I0U8829eZikU5y4-m5UQKIqd_nsY"
 };

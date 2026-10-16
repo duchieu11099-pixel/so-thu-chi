@@ -25,4 +25,4 @@ id = "REPLACE_WITH_YOUR_KV_ID"
 # Bốn giá trị bí mật, KHÔNG ghi vào tệp này, đặt bằng lệnh:
 #   npx wrangler secret put DEEPSEEK_API_KEY
 #   npx wrangler secret put ALLOWED_EMAILS   (vd: email-chong@gmail.com,email-vo@gmail.com)
-#   npx wrangler secret put FCM_SERVER_KEY   (Firebase console > Project settings > Cloud Messaging > Server key)
+#   npx wrangler secret put FCM_SA_JSON      (dán toàn bộ nội dung file service-account JSON khi được hỏi)

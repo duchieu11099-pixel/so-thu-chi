@@ -1,6 +1,6 @@
 # Sổ Thu Chi
 
-Sổ tài chính gia đình dùng chung cho hai vợ chồng người Việt sống ở Nhật: thu chi bằng yên (¥) và đồng (₫), tài khoản ngân hàng Nhật và Việt Nam, sổ tiết kiệm, bảng tính lãi, bảng lãi suất ngân hàng, sổ mừng cưới (ai mừng mình bao nhiêu, gợi ý số tiền mừng lại), tiền mặt để dành (không lãi, chuyển sang gửi ngân hàng khi muốn), sổ nợ (ai nợ mình, mình nợ ai, từng lần trả), cảnh báo tiêu quá đà và cố vấn AI (DeepSeek).
+Sổ tài chính gia đình dùng chung cho hai vợ chồng người Việt sống ở Nhật: thu chi bằng yên (¥) và đồng (₫), tài khoản ngân hàng Nhật và Việt Nam, sổ tiết kiệm, bảng tính lãi, bảng lãi suất ngân hàng, sổ mừng cưới (ai mừng mình bao nhiêu, gợi ý số tiền mừng lại), tiền mặt để dành (không lãi, chuyển sang gửi ngân hàng khi muốn), sổ nợ (ai nợ mình, mình nợ ai, từng lần trả), chi phí cố định hàng tháng (tiền nhà, mạng… nhập một lần tự tính mỗi tháng), cảnh báo tiêu quá đà và cố vấn AI (DeepSeek).
 
 **Link app:** https://so-thu-chi-ec435.firebaseapp.com (Firebase Hosting; link GitHub Pages cũ https://duchieu11099-pixel.github.io/so-thu-chi/ tự chuyển sang đây)
 
@@ -36,6 +36,7 @@ Sổ tài chính gia đình dùng chung cho hai vợ chồng người Việt s�
 | `hh/main/tx/{id}` | Giao dịch: `kind` (out/in/save/transfer), `amount`, `cur`, `acc`, `to`, `amount2`, `cat`, `note`, `date`, `month`, `by`, `byName`, `at` |
 | `hh/main/goals/{id}` | Món đồ muốn mua: `name`, `price`, `cur`, `saved`, `by` |
 | `hh/main/deposits/{id}` | Sổ tiết kiệm: `bank`, `cur`, `amount`, `rate`, `term`, `start`, `mode`, `from`. Tiền mặt để dành (không lãi) có `kind: "cash"` và không có `rate`, `term`, `mode` |
+| `hh/main/fixed/{id}` | Chi phí cố định hàng tháng: `name`, `amount`, `cur`, `cat`, `start` (tháng bắt đầu áp dụng, "YYYY-MM"). Tự tính vào chi tiêu mỗi tháng, không trừ số dư tài khoản |
 | `hh/main/gifts/{id}` | Mừng cưới: `dir` (in = họ mừng mình, out = mình đi mừng), `name`, `group`, `event`, `date`, `amount`, `cur`, `note`, `acc`, `txId` |
 | `hh/main/debts/{id}` | Sổ nợ: `dir` (lend = người khác nợ mình, borrow = mình nợ), `name`, `amount`, `cur`, `date`, `due`, `note`, `acc`, `pays` (các lần trả: `amount`, `date`, `note`) |
 | `ref/rates` | Bảng lãi suất (tự nạp từ `docs/rates.json` khi tệp mới hơn) |

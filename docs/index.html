@@ -204,6 +204,26 @@ form.goalform { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(0,1
 .quick button { font-size: .82rem; padding: 6px 10px; border-radius: 99px }
 form.ask { display: flex; gap: 8px }
 
+/* Chi phí cố định */
+form.fixedform { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto minmax(0,1fr) auto; gap: 8px; align-items: center }
+form.fixedform .fxname { grid-column: 1 / -1 }
+form.fixedform .curpick button { min-width: 3.2em; font-family: var(--f-num) }
+.fixedlist { display: grid; gap: 2px }
+.fixedrow { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2px 10px; padding: 9px 0; border-bottom: 1px solid var(--line); align-items: center }
+.fixedrow:last-child { border-bottom: 0 }
+.fixedrow.off { opacity: .55 }
+.fixedrow .fxmain { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; min-width: 0 }
+.fixedrow .fxnm { font-weight: 500; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; min-width: 0 }
+.fixedrow .fxamt { font-family: var(--f-num); white-space: nowrap }
+.fixedrow .fxamt .acc { font-family: var(--f-body) }
+.fixedrow .fxoff { font-size: .72rem; color: var(--muted) }
+.fixedrow .tools { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; align-items: center }
+.fixedrow .tools input { width: 10em }
+@media (max-width: 560px) {
+  form.fixedform { grid-template-columns: minmax(0,1fr) auto }
+  form.fixedform #fCat { grid-column: 1 / -1 }
+}
+
 /* Sổ tiết kiệm */
 .deps { display: grid; gap: 10px }
 .dep { border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: grid; gap: 6px }
@@ -459,6 +479,25 @@ tr.clickable:hover td { background: var(--sunken) }
         <section class="card">
           <div class="cardhead"><h2>Chi theo danh mục</h2><span class="hint" id="catHint"></span></div>
           <div class="cats" id="cats"></div>
+        </section>
+
+        <section class="card">
+          <div class="cardhead"><h2>Chi phí cố định hàng tháng</h2><span class="hint" id="fixedHint"></span></div>
+          <div class="fixedlist" id="fixedList"></div>
+          <details id="fixedDetails">
+            <summary>Thêm khoản chi cố định</summary>
+            <form class="fixedform" id="fixedForm" autocomplete="off">
+              <input id="fName" class="fxname" placeholder="Tên (vd: Tiền nhà, Mạng, Điện thoại)" required aria-label="Tên khoản chi cố định">
+              <input id="fAmt" inputmode="decimal" placeholder="Số tiền/tháng" required aria-label="Số tiền mỗi tháng">
+              <div class="seg curpick" role="group" aria-label="Loại tiền" id="fixedCurSeg">
+                <button type="button" data-cur="JPY" aria-pressed="true">¥</button>
+                <button type="button" data-cur="VND" aria-pressed="false">₫</button>
+              </div>
+              <select id="fCat" aria-label="Danh mục"></select>
+              <button class="primary" type="submit">Thêm</button>
+            </form>
+          </details>
+          <div class="hint">Các khoản này tự tính vào “Đã chi” mỗi tháng, không phải nhập lại. Tháng nào thay đổi thì bấm “Sửa” để đổi số. Chúng không tự trừ vào số dư tài khoản.</div>
         </section>
 
         <section class="card">
@@ -803,7 +842,7 @@ tr.clickable:hover td { background: var(--sunken) }
 
   // ---------- Trạng thái ----------
   // M: dữ liệu thật của gia đình (đồng bộ). D: dữ liệu mẫu khi chưa thiết lập.
-  const M = { settings: null, accounts: {}, goals: {}, deposits: {}, gifts: {}, debts: {}, tx: {}, rates: null };
+  const M = { settings: null, accounts: {}, goals: {}, deposits: {}, gifts: {}, debts: {}, fixed: {}, tx: {}, rates: null };
   let D = null;
   const state = { loaded: false, view: "JPY", y: today.getFullYear(), m: today.getMonth() + 1, kind: "out", cur: "JPY", accTouched: false, chat: [], me: null, rateC: "vn" };
   const isDemo = () => !M.settings;
@@ -816,6 +855,7 @@ tr.clickable:hover td { background: var(--sunken) }
     const plus = k => mkey(y + Math.floor((m - 1 + k) / 12), ((m - 1 + k) % 12) + 1);
     const arr = a => Object.fromEntries(a.map(x => [x.id, x]));
     const mo = mkey(y, m);
+    const past6 = ymd(addMonths(ymd(today), -6)).slice(0, 7);
     return {
       settings: { cur: "JPY", income: 420000, limit: 280000, rate: DEFAULT_RATE, defAcc: { JPY: "a1", VND: "a3" },
         catLimits: { "Ăn uống": 70000, "Mua sắm": 30000, "Giải trí": 15000 } },
@@ -837,6 +877,11 @@ tr.clickable:hover td { background: var(--sunken) }
         { id: "n1", dir: "lend", name: "Anh Tuấn", amount: 5000000, cur: "VND", date: ymd(addMonths(ymd(today), -3)), due: ymd(addMonths(ymd(today), 1)), note: "Mượn sửa nhà",
           pays: [{ id: "p1", amount: 2000000, date: ymd(addMonths(ymd(today), -1)), note: "Trả lần 1, chuyển khoản" }] },
         { id: "n2", dir: "borrow", name: "Chị Hà", amount: 100000, cur: "JPY", date: ymd(addMonths(ymd(today), -1)), note: "Mượn tiền cọc nhà", pays: [] }
+      ]),
+      fixed: arr([
+        { id: "f1", name: "Tiền nhà", amount: 68000, cur: "JPY", cat: "Nhà ở & hóa đơn", start: past6 },
+        { id: "f2", name: "Mạng + điện thoại", amount: 9800, cur: "JPY", cat: "Điện thoại & mạng", start: past6 },
+        { id: "f3", name: "Bảo hiểm", amount: 12000, cur: "JPY", cat: "Sức khỏe & bảo hiểm", start: past6 }
       ]),
       gifts: arr([
         { id: "w1", dir: "in", name: "Nguyễn Thị Lan", group: "Bạn bè", event: "Cưới của mình", date: "2025-04-12", amount: 30000, cur: "JPY" },
@@ -882,7 +927,7 @@ tr.clickable:hover td { background: var(--sunken) }
           setSync(!s.metadata.fromCache, s.metadata.fromCache ? "Đang ngoại tuyến · sẽ đồng bộ khi có mạng" : null);
           changed();
         }, onErr);
-        ["accounts", "goals", "deposits", "gifts", "debts"].forEach(k => F.onSnapshot(col(k), q => { M[k] = toMap(q); changed(); }, onErr));
+        ["accounts", "goals", "deposits", "gifts", "debts", "fixed"].forEach(k => F.onSnapshot(col(k), q => { M[k] = toMap(q); changed(); }, onErr));
         F.onSnapshot(F.doc(db, "ref", "rates"), s => { M.rates = s.exists() ? s.data() : null; renderRates(); if (!s.metadata.fromCache) syncRatesFile(); }, onErr);
         this.watchMonth();
       },
@@ -897,7 +942,7 @@ tr.clickable:hover td { background: var(--sunken) }
       setRates(o) { M.rates = o; return F.setDoc(F.doc(db, "ref", "rates"), clone(o)).catch(saveErr); },
       async allTx() { const q = await F.getDocs(col("tx")); return q.docs.map(d => ({ ...d.data(), id: d.id })); },
       async clearAll() {
-        for (const k of ["accounts", "goals", "deposits", "gifts", "debts", "tx"]) {
+        for (const k of ["accounts", "goals", "deposits", "gifts", "debts", "fixed", "tx"]) {
           const q = await F.getDocs(col(k));
           for (const d of q.docs) await F.deleteDoc(d.ref);
         }
@@ -905,10 +950,10 @@ tr.clickable:hover td { background: var(--sunken) }
     };
   }
   function localRepo() {
-    let blob = { settings: null, accounts: {}, goals: {}, deposits: {}, gifts: {}, debts: {}, tx: {}, rates: null };
+    let blob = { settings: null, accounts: {}, goals: {}, deposits: {}, gifts: {}, debts: {}, fixed: {}, tx: {}, rates: null };
     try { const v = localStorage.getItem(LKEY); if (v) blob = { ...blob, ...JSON.parse(v) }; } catch {}
     const persist = () => { try { localStorage.setItem(LKEY, JSON.stringify(blob)); } catch {} };
-    const sync = () => { M.settings = blob.settings; M.accounts = blob.accounts; M.goals = blob.goals; M.deposits = blob.deposits; M.gifts = blob.gifts || {}; M.debts = blob.debts || {}; M.rates = blob.rates;
+    const sync = () => { M.settings = blob.settings; M.accounts = blob.accounts; M.goals = blob.goals; M.deposits = blob.deposits; M.gifts = blob.gifts || {}; M.debts = blob.debts || {}; M.fixed = blob.fixed || {}; M.rates = blob.rates;
       const mo = mkey(state.y, state.m); M.tx = Object.fromEntries(Object.entries(blob.tx).filter(([, t]) => t.month === mo)); };
     return {
       mode: "local",
@@ -919,7 +964,7 @@ tr.clickable:hover td { background: var(--sunken) }
       setSettings(o) { blob.settings = o; persist(); sync(); },
       setRates(o) { blob.rates = o; persist(); sync(); },
       async allTx() { return Object.values(blob.tx); },
-      async clearAll() { blob.accounts = {}; blob.goals = {}; blob.deposits = {}; blob.gifts = {}; blob.debts = {}; blob.tx = {}; persist(); sync(); }
+      async clearAll() { blob.accounts = {}; blob.goals = {}; blob.deposits = {}; blob.gifts = {}; blob.debts = {}; blob.fixed = {}; blob.tx = {}; persist(); sync(); }
     };
   }
   function saveErr(e) { console.error(e); toast(e?.code === "permission-denied" ? "Tài khoản này chưa được cấp quyền ghi vào sổ. Xem HUONG-DAN.md, mục “Thêm người dùng”." : "Không lưu được: " + (e?.message || e?.code || "lỗi")); }
@@ -955,7 +1000,7 @@ tr.clickable:hover td { background: var(--sunken) }
   async function exportJson() {
     if (isDemo()) return demoToast();
     const data = { app: "so-thu-chi", version: 1, exportedAt: new Date().toISOString(), settings: M.settings,
-      accounts: Object.values(M.accounts), goals: Object.values(M.goals), deposits: Object.values(M.deposits), gifts: Object.values(M.gifts), debts: Object.values(M.debts),
+      accounts: Object.values(M.accounts), goals: Object.values(M.goals), deposits: Object.values(M.deposits), gifts: Object.values(M.gifts), debts: Object.values(M.debts), fixed: Object.values(M.fixed),
       tx: await repo.allTx(), rates: M.rates };
     download(`so-thu-chi-sao-luu-${ymd(today)}.json`, JSON.stringify(data, null, 2), "application/json");
     toast("Đã tải bản sao lưu. Hãy cất tệp này ở nơi an toàn.");
@@ -985,7 +1030,7 @@ tr.clickable:hover td { background: var(--sunken) }
     $("importBtn").disabled = true; toast("Đang khôi phục, đừng đóng trang…");
     try {
       await repo.clearAll();
-      for (const k of ["accounts", "goals", "deposits", "gifts", "debts"]) for (const o of (data[k] || [])) await repo.put(k, o);
+      for (const k of ["accounts", "goals", "deposits", "gifts", "debts", "fixed"]) for (const o of (data[k] || [])) await repo.put(k, o);
       for (const t of data.tx) await repo.put("tx", { ...t, month: t.month || t.date.slice(0, 7) });
       if (data.rates) await repo.setRates(data.rates);
       await repo.setSettings(data.settings);
@@ -1044,7 +1089,11 @@ tr.clickable:hover td { background: var(--sunken) }
   function calc() {
     const st = S().settings, tx = list("tx"), V = state.view;
     const sum = k => tx.filter(t => t.kind === k).reduce((a, t) => a + conv(t.amount, txCur(t), V), 0);
-    const spent = sum("out"), gotIn = sum("in"), saved = sum("save");
+    const spentVar = sum("out"), gotIn = sum("in"), saved = sum("save");
+    const mo = mkey(state.y, state.m);
+    const fixedItems = list("fixed").filter(f => (f.start || "") <= mo);
+    const fixedTotal = fixedItems.reduce((a, f) => a + conv(f.amount, f.cur, V), 0);
+    const spent = spentVar + fixedTotal;
     const pIncome = conv(st.income || 0, st.cur, V);
     const income = Math.max(pIncome, gotIn);
     const left = income - spent - saved;
@@ -1052,6 +1101,7 @@ tr.clickable:hover td { background: var(--sunken) }
     const catLimit = cat => st.catLimits?.[cat] ? conv(st.catLimits[cat], st.cur, V) : 0;
     const byCat = {};
     tx.filter(t => t.kind === "out").forEach(t => byCat[t.cat] = (byCat[t.cat] || 0) + conv(t.amount, txCur(t), V));
+    fixedItems.forEach(f => byCat[f.cat] = (byCat[f.cat] || 0) + conv(f.amount, f.cur, V));
     const isCur = state.y === today.getFullYear() && state.m === today.getMonth() + 1;
     const dim = new Date(state.y, state.m, 0).getDate();
     const dayFrac = isCur ? today.getDate() / dim : (new Date(state.y, state.m - 1, 1) < today ? 1 : 0);
@@ -1066,18 +1116,20 @@ tr.clickable:hover td { background: var(--sunken) }
     list("accounts").forEach(a => tot[a.cur] += a.balance || 0);
     list("deposits").forEach(d => { dep[d.cur] += depValue(d).value; if (isCash(d)) cash[d.cur] += d.amount; else depPrin[d.cur] += d.amount; });
     const assets = conv(tot.JPY + dep.JPY, "JPY", V) + conv(tot.VND + dep.VND, "VND", V);
-    return { spent, gotIn, saved, income, left, limit, catLimit, byCat, isCur, dim, dayFrac, goals, totalPerMonth, tot, dep, depPrin, cash, assets };
+    return { spent, spentVar, fixedTotal, fixedItems, gotIn, saved, income, left, limit, catLimit, byCat, isCur, dim, dayFrac, goals, totalPerMonth, tot, dep, depPrin, cash, assets };
   }
 
   function alerts(c) {
     const out = [], st = S().settings;
-    if (!st.income && !st.limit && !list("tx").length) {
+    if (!st.income && !st.limit && !list("tx").length && !list("fixed").length) {
       out.push(["warn", "Bắt đầu", "Mở Thiết lập để nhập thu nhập và giới hạn chi tiêu, rồi thêm các tài khoản ngân hàng ở Nhật và Việt Nam."]); return out; }
     if (c.limit) {
       const r = c.spent / c.limit;
-      if (r >= 1) out.push(["bad", "Vượt mức", `Đã chi ${fmt(c.spent)}, vượt giới hạn ${fmt(c.limit)} là ${fmt(c.spent - c.limit)}.`]);
-      else if (c.isCur && r > c.dayFrac + 0.1) {
-        const proj = c.spent / Math.max(c.dayFrac, 0.03);
+      // chi phí cố định đã cố định, chỉ tính tốc độ trên phần chi biến động
+      const varBudget = Math.max(0, c.limit - c.fixedTotal), varR = varBudget ? c.spentVar / varBudget : 0;
+      if (r >= 1) out.push(["bad", "Vượt mức", `Đã chi ${fmt(c.spent)}${c.fixedTotal ? ` (gồm ${fmt(c.fixedTotal)} cố định)` : ""}, vượt giới hạn ${fmt(c.limit)} là ${fmt(c.spent - c.limit)}.`]);
+      else if (c.isCur && varR > c.dayFrac + 0.1) {
+        const proj = c.fixedTotal + c.spentVar / Math.max(c.dayFrac, 0.03);
         out.push(["warn", "Tiêu nhanh", `Mới qua ${Math.round(c.dayFrac * 100)}% tháng nhưng đã dùng ${Math.round(r * 100)}% ngân sách. Với tốc độ này cuối tháng sẽ chi khoảng ${fmt(proj)}.`]);
       }
       if (c.isCur && r < 1) {
@@ -1269,6 +1321,7 @@ tr.clickable:hover td { background: var(--sunken) }
       if (catList.includes(prev)) sel.value = prev;
     }
 
+    renderFixed(c);
     renderDeposits(c);
     renderGifts();
     renderDebts();
@@ -1290,6 +1343,58 @@ tr.clickable:hover td { background: var(--sunken) }
     if (f && t && amt > 0) $("xHint").textContent = `Ước tính nhận: ${fmt(conv(amt, f.cur, t.cur), t.cur)} theo tỷ giá ${group(rate())} ₫/¥. Nếu ngân hàng thu phí hoặc tỷ giá khác, nhập số thực nhận.`;
     else $("xHint").textContent = accs.length < 2 ? "Cần ít nhất 2 tài khoản để chuyển tiền." : "Để trống ô “nhận được” thì app tự quy đổi theo tỷ giá.";
   }
+
+  // ---------- Chi phí cố định hàng tháng ----------
+  state.fixedCur = "JPY";
+  function renderFixed(c) {
+    const box = $("fixedList"); box.replaceChildren();
+    const items = list("fixed").sort((a, b) => a.cur.localeCompare(b.cur) || (b.amount - a.amount));
+    const active = c.fixedItems.length;
+    $("fixedHint").textContent = items.length ? (c.fixedTotal ? `${active} khoản tháng này · ${fmt(c.fixedTotal)}/tháng` : `${items.length} khoản`) : "";
+    document.querySelectorAll("#fixedCurSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.cur === state.fixedCur));
+    if (!$("fCat").options.length || $("fCat").dataset.filled !== "1") { $("fCat").replaceChildren(...CATS.map(x => opt(x, x))); $("fCat").value = "Nhà ở & hóa đơn"; $("fCat").dataset.filled = "1"; }
+    if (!items.length) { const e = document.createElement("div"); e.className = "empty"; e.textContent = "Chưa có khoản cố định. Thêm tiền nhà, tiền mạng, bảo hiểm… để khỏi nhập lại mỗi tháng."; box.append(e); return; }
+    const mo = mkey(state.y, state.m);
+    items.forEach(f => {
+      const on = (f.start || "") <= mo;
+      const row = document.createElement("div"); row.className = "fixedrow" + (on ? "" : " off");
+      const main = document.createElement("div"); main.className = "fxmain";
+      const nm = document.createElement("div"); nm.className = "fxnm"; nm.append(curTag(f.cur), " ", f.name);
+      const tag = document.createElement("span"); tag.className = "tag"; tag.textContent = f.cat; nm.append(tag);
+      if (!on) { const p = document.createElement("span"); p.className = "fxoff"; p.textContent = `từ ${dmy(f.start + "-01").slice(3)}`; nm.append(p); }
+      const amt = document.createElement("div"); amt.className = "fxamt num"; amt.textContent = fmt(f.amount, f.cur);
+      if (f.cur !== state.view) { const s = document.createElement("span"); s.className = "acc"; s.textContent = "≈ " + short(conv(f.amount, f.cur, state.view)); amt.append(s); }
+      main.append(nm, amt);
+      const edit = document.createElement("button"); edit.className = "ghost small"; edit.type = "button"; edit.textContent = "Sửa"; edit.style.justifySelf = "start"; edit.style.paddingLeft = "0";
+      const tools = document.createElement("div"); tools.className = "tools"; tools.hidden = true;
+      const inp = document.createElement("input"); inp.inputMode = "decimal"; inp.value = f.cur === "JPY" ? group(f.amount) : short(f.amount, "VND").replace(" ₫", ""); inp.setAttribute("aria-label", "Số tiền mới cho " + f.name);
+      const ok = document.createElement("button"); ok.type = "button"; ok.textContent = "Lưu";
+      const rm = document.createElement("button"); rm.className = "ghost"; rm.type = "button"; rm.textContent = "Xóa";
+      edit.onclick = () => { tools.hidden = !tools.hidden; if (!tools.hidden) inp.focus(); };
+      ok.onclick = () => setFixed(f.id, parseMoney(inp.value));
+      rm.onclick = () => confirmClick(rm, "Xóa", () => removeFixed(f.id));
+      tools.append(inp, ok, rm);
+      row.append(main, edit, tools); box.append(row);
+    });
+  }
+  function setFixed(id, v) {
+    if (isDemo()) return demoToast();
+    const f = M.fixed[id]; if (!f) return;
+    if (!(v > 0)) { toast("Số tiền chưa hợp lệ. Ví dụ: 68000, 6man8, 2tr"); return; }
+    repo.put("fixed", { ...f, amount: v }); render(); toast(`Đã đổi ${f.name} thành ${fmt(v, f.cur)}/tháng`);
+  }
+  function removeFixed(id) { if (isDemo()) return demoToast(); const f = M.fixed[id]; repo.del("fixed", id); render(); toast(f ? "Đã xóa khoản cố định " + f.name : "Đã xóa"); }
+  document.querySelectorAll("#fixedCurSeg button").forEach(b => b.onclick = () => { state.fixedCur = b.dataset.cur; document.querySelectorAll("#fixedCurSeg button").forEach(x => x.setAttribute("aria-pressed", x === b)); });
+  $("fixedForm").onsubmit = async e => {
+    e.preventDefault();
+    const name = $("fName").value.trim(), amount = parseMoney($("fAmt").value);
+    if (!name) { toast("Nhập tên khoản chi"); return; }
+    if (!(amount > 0)) { toast("Số tiền chưa hợp lệ. Ví dụ: 68000, 6man8, 2tr"); return; }
+    if (!await ensureReal()) return;
+    repo.put("fixed", { id: uid(), name, amount, cur: state.fixedCur, cat: $("fCat").value, start: mkey(state.y, state.m) });
+    render(); $("fName").value = ""; $("fAmt").value = ""; $("fName").focus();
+    toast(`Đã thêm chi phí cố định: ${name} ${fmt(amount, state.fixedCur)}/tháng`);
+  };
 
   // ---------- Sổ tiết kiệm ----------
   function renderDeposits(c) {
@@ -2202,7 +2307,8 @@ tr.clickable:hover td { background: var(--sunken) }
       `Tiết kiệm: ` + (list("deposits").map(d => isCash(d) ? `tiền mặt để dành (${d.bank || "tiền mặt"}) ${fmt(d.amount, d.cur)}, không tính lãi, từ ${d.start || "?"}` : `${d.bank} ${fmt(d.amount, d.cur)} lãi ${d.rate}%/năm kỳ hạn ${d.term} tháng, gửi ${d.start}, hiện ≈ ${fmt(depValue(d).value, d.cur)}`).join("; ") || "chưa có"),
       giftSummary(),
       debtSummary(),
-      `Chi theo danh mục: ` + (Object.entries(c.byCat).map(([k, v]) => `${k} ${fmt(v)}${c.catLimit(k) ? ` (hạn mức ${fmt(c.catLimit(k))})` : ""}`).join("; ") || "chưa có"),
+      `Chi phí cố định hàng tháng (đã tính sẵn vào chi tiêu): ` + (c.fixedItems.map(f => `${f.name} ${fmt(f.amount, f.cur)} [${f.cat}]`).join("; ") || "chưa có") + (c.fixedTotal ? `; tổng ${fmt(c.fixedTotal)}/tháng` : ""),
+      `Chi theo danh mục (gồm cả chi phí cố định): ` + (Object.entries(c.byCat).map(([k, v]) => `${k} ${fmt(v)}${c.catLimit(k) ? ` (hạn mức ${fmt(c.catLimit(k))})` : ""}`).join("; ") || "chưa có"),
       `Món đồ muốn mua: ` + (c.goals.map(g => `${g.name}: giá ${fmt(g.price, g.cur)}, đã để dành ${fmt(g.saved || 0, g.cur)}, hạn tháng ${g.by}, cần ${fmt(g.perMonth, g.cur)}/tháng`).join("; ") || "chưa có"),
       `Giao dịch gần đây: ` + (list("tx").sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30).map(t => `${t.date} ${{ out: "chi", in: "thu", save: "tiết kiệm", transfer: "chuyển tiền" }[t.kind]} ${fmt(t.amount, txCur(t))} [${t.cat}] ${t.note || ""}`).join(" | ") || "chưa có"),
       ratesSummary()

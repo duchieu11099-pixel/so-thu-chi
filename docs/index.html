@@ -89,8 +89,9 @@ header.top { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; j
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none }
 .dot.on { background: var(--good) }
 
-.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line) }
-.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; padding: 10px 14px; color: var(--muted); font-weight: 600 }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none }
+.tabs::-webkit-scrollbar { display: none }
+.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; padding: 10px 14px; color: var(--muted); font-weight: 600; flex: none; white-space: nowrap }
 .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent) }
 
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; flex: none }
@@ -213,6 +214,38 @@ form.ask { display: flex; gap: 8px }
 .dep .acts { display: flex; gap: 6px; flex-wrap: wrap }
 form.depform { display: grid; gap: 8px; grid-template-columns: repeat(4, minmax(0,1fr)) }
 form.depform .w2 { grid-column: span 2 }
+form.depform .w-all { grid-column: 1 / -1 }
+form.depform .depseg { grid-column: 1 / -1; justify-self: start }
+
+/* Tiền mặt để dành (không tính lãi) */
+.dep.cash { border-style: dashed }
+.dep .tools { display: flex; gap: 6px; flex-wrap: wrap; align-items: center }
+.dep .tools input { width: 10em }
+.dep .convert { display: grid; gap: 8px; grid-template-columns: repeat(4, minmax(0,1fr)); border-top: 1px solid var(--line); padding-top: 10px; align-items: end }
+.dep .convert .w2 { grid-column: span 2 }
+.dep .convert .w-all { grid-column: 1 / -1 }
+
+/* Sổ nợ */
+.debtform { display: grid; gap: 8px; grid-template-columns: auto minmax(0,1.4fr) minmax(0,1fr) auto; align-items: end }
+.debtform .curpick button { min-width: 3.2em; font-family: var(--f-num) }
+.debtform .r2 { grid-column: 1 / -1; display: grid; gap: 8px; grid-template-columns: 10.5em 10.5em minmax(0,1fr) }
+.debtform .r3 { grid-column: 1 / -1; display: grid; gap: 8px; grid-template-columns: minmax(0,1fr) auto; align-items: end }
+.debtsum { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px }
+.debts { display: grid; gap: 10px }
+.debt { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 8px }
+.debt .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap }
+.debt .who { font-weight: 600; font-size: 1.02rem; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap }
+.debt .left { font-family: var(--f-num); font-weight: 600 }
+.debt .left.lend { color: var(--good) }
+.debt .left.borrow { color: var(--bad) }
+.debt .facts { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; font-size: .85rem }
+.debt .facts span { display: block; color: var(--muted); font-size: .72rem }
+.debt .meter { height: 7px }
+.debt ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: .86rem }
+.debt li { display: flex; justify-content: space-between; gap: 8px; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 4px }
+.debt li .amt { font-family: var(--f-num); display: flex; gap: 6px; align-items: center }
+.debt .payform { display: grid; gap: 8px; grid-template-columns: minmax(0,1fr) 10.5em minmax(0,1.4fr) auto auto; align-items: end }
+.debt .foot { display: flex; justify-content: flex-end }
 
 /* Bảng tính lãi */
 .calc { display: grid; gap: 8px; grid-template-columns: minmax(0,1.3fr) 5.5em minmax(0,.8fr) minmax(0,.8fr) minmax(0,1.1fr) }
@@ -290,6 +323,17 @@ tr.clickable:hover td { background: var(--sunken) }
   form.goalform .gname, form.accform .aname { grid-column: 1 / -1 }
   form.depform { grid-template-columns: minmax(0,1fr) minmax(0,1fr) }
   .dep .facts, .calcsum { grid-template-columns: minmax(0,1fr) minmax(0,1fr) }
+  .dep .convert { grid-template-columns: minmax(0,1fr) minmax(0,1fr) }
+  .tabs button { padding: 10px 10px }
+  .debtform { grid-template-columns: minmax(0,1fr) auto }
+  .debtform .debtseg, .debtform .f-name { grid-column: 1 / -1 }
+  .debtform .r2 { grid-template-columns: minmax(0,1fr) minmax(0,1fr) }
+  .debtform .r2 .f-acc { grid-column: 1 / -1 }
+  .debtsum { grid-template-columns: minmax(0,1fr) minmax(0,1fr) }
+  .debtsum .total:last-child { grid-column: 1 / -1 }
+  .debt .facts { grid-template-columns: repeat(3, minmax(0,1fr)); font-size: .8rem }
+  .debt .payform { grid-template-columns: minmax(0,1fr) minmax(0,1fr) }
+  .debt .payform .f-pnote { grid-column: 1 / -1 }
 }
 @media (prefers-reduced-motion: no-preference) { .meter > .fill { transition: width .4s ease } }
 </style>
@@ -367,6 +411,7 @@ tr.clickable:hover td { background: var(--sunken) }
     <button role="tab" id="tabMain" aria-selected="true" aria-controls="pMain">Thu chi</button>
     <button role="tab" id="tabSave" aria-selected="false" aria-controls="pSave">Tiết kiệm &amp; lãi suất</button>
     <button role="tab" id="tabGift" aria-selected="false" aria-controls="pGift">Mừng cưới</button>
+    <button role="tab" id="tabDebt" aria-selected="false" aria-controls="pDebt">Sổ nợ</button>
   </div>
 
   <!-- ===================== TAB THU CHI ===================== -->
@@ -497,24 +542,29 @@ tr.clickable:hover td { background: var(--sunken) }
     <div class="cols">
       <div class="col">
         <section class="card">
-          <div class="cardhead"><h2>Sổ tiết kiệm đang gửi</h2><span class="hint" id="depHint"></span></div>
+          <div class="cardhead"><h2>Tiền tiết kiệm</h2><span class="hint" id="depHint"></span></div>
           <div class="totals">
-            <div class="total"><span class="label">Gửi ở Nhật <span class="cur JPY">JPY</span></span><span class="v num" id="depJPY">0</span><span class="sub" id="depJPYsub"></span></div>
-            <div class="total"><span class="label">Gửi ở Việt Nam <span class="cur VND">VND</span></span><span class="v num" id="depVND">0</span><span class="sub" id="depVNDsub"></span></div>
+            <div class="total"><span class="label">Tiết kiệm bên Nhật <span class="cur JPY">JPY</span></span><span class="v num" id="depJPY">0</span><span class="sub" id="depJPYsub"></span></div>
+            <div class="total"><span class="label">Tiết kiệm bên Việt Nam <span class="cur VND">VND</span></span><span class="v num" id="depVND">0</span><span class="sub" id="depVNDsub"></span></div>
           </div>
           <div class="deps" id="deps"></div>
           <details id="depDetails">
-            <summary>Thêm sổ tiết kiệm</summary>
+            <summary>Thêm sổ tiết kiệm hoặc tiền mặt để dành</summary>
             <form class="depform" id="depForm" autocomplete="off">
-              <label class="f w2" for="dBank">Ngân hàng<input id="dBank" list="bankList" placeholder="vd: Vietcombank, SBI新生" required></label>
-              <label class="f" for="dAmt">Số tiền gửi<input id="dAmt" inputmode="decimal" placeholder="vd: 100tr" required></label>
+              <div class="seg depseg" role="group" aria-label="Loại tiền tiết kiệm" id="depSeg">
+                <button type="button" data-k="bank" aria-pressed="true">Gửi ngân hàng</button>
+                <button type="button" data-k="cash" aria-pressed="false">Tiền mặt (không lãi)</button>
+              </div>
+              <div class="hint w-all" id="depCashHint" hidden>Tiền mặt để dành không tính lãi. Khi mang đi gửi ngân hàng, bấm “Gửi ngân hàng” ở khoản tiền này để chuyển thành sổ tiết kiệm, tính lãi từ ngày bắt đầu gửi.</div>
+              <label class="f w2" for="dBank"><span id="dBankLabel">Ngân hàng</span><input id="dBank" list="bankList" placeholder="vd: Vietcombank, SBI新生" required></label>
+              <label class="f" for="dAmt"><span id="dAmtLabel">Số tiền gửi</span><input id="dAmt" inputmode="decimal" placeholder="vd: 100tr" required></label>
               <label class="f" for="dCur">Loại tiền<select id="dCur"><option value="VND">₫ Việt Nam</option><option value="JPY">¥ Nhật</option></select></label>
-              <label class="f" for="dRate">Lãi suất %/năm<input id="dRate" inputmode="decimal" placeholder="vd: 6" required></label>
-              <label class="f" for="dTerm">Kỳ hạn<select id="dTerm"><option value="1">1 tháng</option><option value="3">3 tháng</option><option value="6">6 tháng</option><option value="9">9 tháng</option><option value="12" selected>12 tháng</option><option value="18">18 tháng</option><option value="24">24 tháng</option><option value="36">36 tháng</option><option value="60">5 năm</option></select></label>
-              <label class="f" for="dStart">Ngày gửi<input id="dStart" type="date" required></label>
-              <label class="f" for="dMode">Khi đáo hạn<select id="dMode"><option value="roll">Tái tục cả gốc và lãi</option><option value="end">Rút lãi, không tái tục</option></select></label>
+              <label class="f bankonly" for="dRate">Lãi suất %/năm<input id="dRate" inputmode="decimal" placeholder="vd: 6" required></label>
+              <label class="f bankonly" for="dTerm">Kỳ hạn<select id="dTerm"><option value="1">1 tháng</option><option value="3">3 tháng</option><option value="6">6 tháng</option><option value="9">9 tháng</option><option value="12" selected>12 tháng</option><option value="18">18 tháng</option><option value="24">24 tháng</option><option value="36">36 tháng</option><option value="60">5 năm</option></select></label>
+              <label class="f" for="dStart"><span id="dStartLabel">Ngày gửi</span><input id="dStart" type="date" required></label>
+              <label class="f bankonly" for="dMode">Khi đáo hạn<select id="dMode"><option value="roll">Tái tục cả gốc và lãi</option><option value="end">Rút lãi, không tái tục</option></select></label>
               <label class="f w2" for="dFrom">Trích tiền từ tài khoản<select id="dFrom"></select></label>
-              <div class="w2" style="display:flex;align-items:end"><button class="primary" type="submit" style="width:100%">Thêm sổ tiết kiệm</button></div>
+              <div class="w2" style="display:flex;align-items:end"><button class="primary" type="submit" id="depSubmit" style="width:100%">Thêm sổ tiết kiệm</button></div>
             </form>
             <datalist id="bankList"></datalist>
           </details>
@@ -647,6 +697,53 @@ tr.clickable:hover td { background: var(--sunken) }
       </div>
     </div>
   </div>
+
+  <!-- ===================== TAB SỔ NỢ ===================== -->
+  <div id="pDebt" role="tabpanel" aria-labelledby="tabDebt" hidden style="display:grid;gap:20px">
+    <section class="card">
+      <div class="cardhead"><h2>Ghi khoản nợ</h2><span class="hint">Cho người khác vay, hoặc mình vay người khác</span></div>
+      <form class="debtform" id="debtForm" autocomplete="off">
+        <div class="seg debtseg" role="group" aria-label="Loại nợ" id="debtSeg">
+          <button type="button" data-dir="lend" aria-pressed="true">Họ nợ mình</button>
+          <button type="button" data-dir="borrow" aria-pressed="false">Mình nợ họ</button>
+        </div>
+        <label class="f f-name" for="bName"><span id="bNameLabel">Ai vay mình</span><input id="bName" list="debtNames" placeholder="vd: anh Tuấn" required></label>
+        <label class="f" for="bAmt"><span id="bAmtLabel">Số tiền cho vay</span><input id="bAmt" inputmode="decimal" placeholder="vd: 5man, 10tr" required></label>
+        <div class="seg curpick" role="group" aria-label="Loại tiền" id="debtCurSeg">
+          <button type="button" data-cur="JPY" aria-pressed="true">¥</button>
+          <button type="button" data-cur="VND" aria-pressed="false">₫</button>
+        </div>
+        <div class="r2">
+          <label class="f" for="bDate">Ngày vay<input id="bDate" type="date"></label>
+          <label class="f" for="bDue">Hẹn trả (nếu có)<input id="bDue" type="date"></label>
+          <label class="f f-acc" for="bAcc"><span id="bAccLabel">Tiền lấy từ tài khoản</span><select id="bAcc"></select></label>
+        </div>
+        <div class="r3">
+          <label class="f" for="bNote">Ghi chú<input id="bNote" placeholder="vd: mượn sửa nhà, hẹn trả dần mỗi tháng"></label>
+          <button class="primary" type="submit">Lưu</button>
+        </div>
+        <div class="route" id="debtRoute"></div>
+      </form>
+      <datalist id="debtNames"></datalist>
+    </section>
+
+    <section class="card">
+      <div class="cardhead"><h2>Sổ nợ</h2><span class="hint" id="debtCount"></span></div>
+      <div class="debtsum">
+        <div class="total"><span class="label">Người khác còn nợ mình</span><span class="v num" id="dbLend">0</span><span class="sub num" id="dbLendSub"></span></div>
+        <div class="total"><span class="label">Mình còn nợ người khác</span><span class="v num" id="dbBorrow">0</span><span class="sub num" id="dbBorrowSub"></span></div>
+        <div class="total"><span class="label">Chênh lệch</span><span class="v num" id="dbNet">0</span><span class="sub" id="dbNetSub"></span></div>
+      </div>
+      <div class="seg" role="group" aria-label="Lọc" id="debtFilter">
+        <button type="button" data-f="open" aria-pressed="true">Còn nợ</button>
+        <button type="button" data-f="lend" aria-pressed="false">Họ nợ</button>
+        <button type="button" data-f="borrow" aria-pressed="false">Mình nợ</button>
+        <button type="button" data-f="done" aria-pressed="false">Đã xong</button>
+      </div>
+      <div class="debts" id="debts"></div>
+      <div class="hint">Mỗi lần trả, ghi số tiền, ngày trả và ghi chú ở ô bên dưới khoản nợ. Ghi nhầm thì bấm “Xóa” cạnh lần trả đó.</div>
+    </section>
+  </div>
 </div>
 <div class="toast" id="toast" hidden></div>
 
@@ -706,7 +803,7 @@ tr.clickable:hover td { background: var(--sunken) }
 
   // ---------- Trạng thái ----------
   // M: dữ liệu thật của gia đình (đồng bộ). D: dữ liệu mẫu khi chưa thiết lập.
-  const M = { settings: null, accounts: {}, goals: {}, deposits: {}, gifts: {}, tx: {}, rates: null };
+  const M = { settings: null, accounts: {}, goals: {}, deposits: {}, gifts: {}, debts: {}, tx: {}, rates: null };
   let D = null;
   const state = { loaded: false, view: "JPY", y: today.getFullYear(), m: today.getMonth() + 1, kind: "out", cur: "JPY", accTouched: false, chat: [], me: null, rateC: "vn" };
   const isDemo = () => !M.settings;
@@ -733,7 +830,13 @@ tr.clickable:hover td { background: var(--sunken) }
       ]),
       deposits: arr([
         { id: "s1", bank: "LPBank", cur: "VND", amount: 200000000, rate: 7.2, term: 12, start: ymd(addMonths(ymd(today), -4)), mode: "roll" },
-        { id: "s2", bank: "SBI新生銀行", cur: "JPY", amount: 1000000, rate: 1.25, term: 12, start: ymd(addMonths(ymd(today), -9)), mode: "roll" }
+        { id: "s2", bank: "SBI新生銀行", cur: "JPY", amount: 1000000, rate: 1.25, term: 12, start: ymd(addMonths(ymd(today), -9)), mode: "roll" },
+        { id: "s3", kind: "cash", bank: "Két ở nhà", cur: "JPY", amount: 150000, start: ymd(addMonths(ymd(today), -2)) }
+      ]),
+      debts: arr([
+        { id: "n1", dir: "lend", name: "Anh Tuấn", amount: 5000000, cur: "VND", date: ymd(addMonths(ymd(today), -3)), due: ymd(addMonths(ymd(today), 1)), note: "Mượn sửa nhà",
+          pays: [{ id: "p1", amount: 2000000, date: ymd(addMonths(ymd(today), -1)), note: "Trả lần 1, chuyển khoản" }] },
+        { id: "n2", dir: "borrow", name: "Chị Hà", amount: 100000, cur: "JPY", date: ymd(addMonths(ymd(today), -1)), note: "Mượn tiền cọc nhà", pays: [] }
       ]),
       gifts: arr([
         { id: "w1", dir: "in", name: "Nguyễn Thị Lan", group: "Bạn bè", event: "Cưới của mình", date: "2025-04-12", amount: 30000, cur: "JPY" },
@@ -779,7 +882,7 @@ tr.clickable:hover td { background: var(--sunken) }
           setSync(!s.metadata.fromCache, s.metadata.fromCache ? "Đang ngoại tuyến · sẽ đồng bộ khi có mạng" : null);
           changed();
         }, onErr);
-        ["accounts", "goals", "deposits", "gifts"].forEach(k => F.onSnapshot(col(k), q => { M[k] = toMap(q); changed(); }, onErr));
+        ["accounts", "goals", "deposits", "gifts", "debts"].forEach(k => F.onSnapshot(col(k), q => { M[k] = toMap(q); changed(); }, onErr));
         F.onSnapshot(F.doc(db, "ref", "rates"), s => { M.rates = s.exists() ? s.data() : null; renderRates(); if (!s.metadata.fromCache) syncRatesFile(); }, onErr);
         this.watchMonth();
       },
@@ -794,7 +897,7 @@ tr.clickable:hover td { background: var(--sunken) }
       setRates(o) { M.rates = o; return F.setDoc(F.doc(db, "ref", "rates"), clone(o)).catch(saveErr); },
       async allTx() { const q = await F.getDocs(col("tx")); return q.docs.map(d => ({ ...d.data(), id: d.id })); },
       async clearAll() {
-        for (const k of ["accounts", "goals", "deposits", "gifts", "tx"]) {
+        for (const k of ["accounts", "goals", "deposits", "gifts", "debts", "tx"]) {
           const q = await F.getDocs(col(k));
           for (const d of q.docs) await F.deleteDoc(d.ref);
         }
@@ -802,10 +905,10 @@ tr.clickable:hover td { background: var(--sunken) }
     };
   }
   function localRepo() {
-    let blob = { settings: null, accounts: {}, goals: {}, deposits: {}, gifts: {}, tx: {}, rates: null };
+    let blob = { settings: null, accounts: {}, goals: {}, deposits: {}, gifts: {}, debts: {}, tx: {}, rates: null };
     try { const v = localStorage.getItem(LKEY); if (v) blob = { ...blob, ...JSON.parse(v) }; } catch {}
     const persist = () => { try { localStorage.setItem(LKEY, JSON.stringify(blob)); } catch {} };
-    const sync = () => { M.settings = blob.settings; M.accounts = blob.accounts; M.goals = blob.goals; M.deposits = blob.deposits; M.gifts = blob.gifts || {}; M.rates = blob.rates;
+    const sync = () => { M.settings = blob.settings; M.accounts = blob.accounts; M.goals = blob.goals; M.deposits = blob.deposits; M.gifts = blob.gifts || {}; M.debts = blob.debts || {}; M.rates = blob.rates;
       const mo = mkey(state.y, state.m); M.tx = Object.fromEntries(Object.entries(blob.tx).filter(([, t]) => t.month === mo)); };
     return {
       mode: "local",
@@ -816,7 +919,7 @@ tr.clickable:hover td { background: var(--sunken) }
       setSettings(o) { blob.settings = o; persist(); sync(); },
       setRates(o) { blob.rates = o; persist(); sync(); },
       async allTx() { return Object.values(blob.tx); },
-      async clearAll() { blob.accounts = {}; blob.goals = {}; blob.deposits = {}; blob.gifts = {}; blob.tx = {}; persist(); sync(); }
+      async clearAll() { blob.accounts = {}; blob.goals = {}; blob.deposits = {}; blob.gifts = {}; blob.debts = {}; blob.tx = {}; persist(); sync(); }
     };
   }
   function saveErr(e) { console.error(e); toast(e?.code === "permission-denied" ? "Tài khoản này chưa được cấp quyền ghi vào sổ. Xem HUONG-DAN.md, mục “Thêm người dùng”." : "Không lưu được: " + (e?.message || e?.code || "lỗi")); }
@@ -852,7 +955,7 @@ tr.clickable:hover td { background: var(--sunken) }
   async function exportJson() {
     if (isDemo()) return demoToast();
     const data = { app: "so-thu-chi", version: 1, exportedAt: new Date().toISOString(), settings: M.settings,
-      accounts: Object.values(M.accounts), goals: Object.values(M.goals), deposits: Object.values(M.deposits), gifts: Object.values(M.gifts),
+      accounts: Object.values(M.accounts), goals: Object.values(M.goals), deposits: Object.values(M.deposits), gifts: Object.values(M.gifts), debts: Object.values(M.debts),
       tx: await repo.allTx(), rates: M.rates };
     download(`so-thu-chi-sao-luu-${ymd(today)}.json`, JSON.stringify(data, null, 2), "application/json");
     toast("Đã tải bản sao lưu. Hãy cất tệp này ở nơi an toàn.");
@@ -882,7 +985,7 @@ tr.clickable:hover td { background: var(--sunken) }
     $("importBtn").disabled = true; toast("Đang khôi phục, đừng đóng trang…");
     try {
       await repo.clearAll();
-      for (const k of ["accounts", "goals", "deposits", "gifts"]) for (const o of (data[k] || [])) await repo.put(k, o);
+      for (const k of ["accounts", "goals", "deposits", "gifts", "debts"]) for (const o of (data[k] || [])) await repo.put(k, o);
       for (const t of data.tx) await repo.put("tx", { ...t, month: t.month || t.date.slice(0, 7) });
       if (data.rates) await repo.setRates(data.rates);
       await repo.setSettings(data.settings);
@@ -915,7 +1018,13 @@ tr.clickable:hover td { background: var(--sunken) }
   const txCur = t => t.cur || "VND";
   const taxOf = cur => cur === "JPY" ? JP_TAX : 0;
 
+  const isCash = d => d.kind === "cash";
+  // Sổ nợ: dir "lend" = người khác nợ mình, "borrow" = mình nợ người khác; pays = các lần trả
+  const debtPaid = d => (d.pays || []).reduce((a, p) => a + (p.amount || 0), 0);
+  const debtLeft = d => Math.max(0, (d.amount || 0) - debtPaid(d));
+  const daysTo = s => { const [y, m, dd] = s.split("-").map(Number); return Math.round((new Date(y, m - 1, dd) - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / 86400000); };
   function depValue(d) {
+    if (isCash(d)) return { value: d.amount, matured: false, next: null, termInterest: 0 };
     const r = d.rate / 100, tax = taxOf(d.cur), el = monthsSince(d.start);
     const per = r * d.term / 12 * (1 - tax);
     let value, n = 0, matured = false;
@@ -953,11 +1062,11 @@ tr.clickable:hover td { background: var(--sunken) }
       return { ...g, monthsLeft, remain, perMonth: remain / monthsLeft, perMonthV: conv(remain / monthsLeft, g.cur, V) };
     });
     const totalPerMonth = goals.reduce((a, g) => a + g.perMonthV, 0);
-    const tot = { JPY: 0, VND: 0 }, dep = { JPY: 0, VND: 0 }, depPrin = { JPY: 0, VND: 0 };
+    const tot = { JPY: 0, VND: 0 }, dep = { JPY: 0, VND: 0 }, depPrin = { JPY: 0, VND: 0 }, cash = { JPY: 0, VND: 0 };
     list("accounts").forEach(a => tot[a.cur] += a.balance || 0);
-    list("deposits").forEach(d => { dep[d.cur] += depValue(d).value; depPrin[d.cur] += d.amount; });
+    list("deposits").forEach(d => { dep[d.cur] += depValue(d).value; if (isCash(d)) cash[d.cur] += d.amount; else depPrin[d.cur] += d.amount; });
     const assets = conv(tot.JPY + dep.JPY, "JPY", V) + conv(tot.VND + dep.VND, "VND", V);
-    return { spent, gotIn, saved, income, left, limit, catLimit, byCat, isCur, dim, dayFrac, goals, totalPerMonth, tot, dep, depPrin, assets };
+    return { spent, gotIn, saved, income, left, limit, catLimit, byCat, isCur, dim, dayFrac, goals, totalPerMonth, tot, dep, depPrin, cash, assets };
   }
 
   function alerts(c) {
@@ -982,8 +1091,15 @@ tr.clickable:hover td { background: var(--sunken) }
       else if (lim && s > lim * 0.85) out.push(["warn", cat, `Đã dùng ${Math.round(s / lim * 100)}% hạn mức (${fmt(s)} / ${fmt(lim)}).`]);
     });
     list("accounts").forEach(a => { if (a.balance < 0) out.push(["bad", a.name, `Số dư đang âm: ${fmt(a.balance, a.cur)}. Kiểm tra lại giao dịch hoặc cập nhật số dư.`]); });
-    list("deposits").forEach(d => { const v = depValue(d); const days = Math.round((v.next - today) / 86400000);
+    list("deposits").forEach(d => { if (isCash(d)) return; const v = depValue(d); const days = Math.round((v.next - today) / 86400000);
       if (days >= 0 && days <= 14) out.push(["good", "Đáo hạn", `Sổ ${d.bank} (${fmt(d.amount, d.cur)}) đáo hạn ngày ${ymd(v.next).split("-").reverse().join("/")}, còn ${days} ngày.`]); });
+    list("debts").forEach(d => {
+      const left = debtLeft(d); if (!(left > 0) || !d.due) return;
+      const days = daysTo(d.due);
+      const what = d.dir === "lend" ? `${d.name} còn nợ mình ${fmt(left, d.cur)}` : `Mình còn nợ ${d.name} ${fmt(left, d.cur)}`;
+      if (days < 0) out.push(["bad", d.dir === "lend" ? "Đòi nợ" : "Trả nợ", `${what}, đã quá hẹn ${-days} ngày (hẹn ${dmy(d.due)}).`]);
+      else if (days <= 7) out.push(["warn", d.dir === "lend" ? "Đòi nợ" : "Trả nợ", `${what}, hẹn trả ngày ${dmy(d.due)}${days ? `, còn ${days} ngày` : ", là hôm nay"}.`]);
+    });
     if (c.goals.length && c.income) {
       const can = c.income - (c.limit || c.spent);
       if (c.totalPerMonth > can) out.push(["warn", "Mục tiêu", `Các món đồ muốn mua cần ${fmt(c.totalPerMonth)}/tháng, nhưng thu nhập trừ giới hạn chi chỉ còn ${fmt(Math.max(0, can))}. Cân nhắc giảm chi hoặc lùi thời hạn.`]);
@@ -1155,6 +1271,7 @@ tr.clickable:hover td { background: var(--sunken) }
 
     renderDeposits(c);
     renderGifts();
+    renderDebts();
     renderCalc();
   }
 
@@ -1177,14 +1294,16 @@ tr.clickable:hover td { background: var(--sunken) }
   // ---------- Sổ tiết kiệm ----------
   function renderDeposits(c) {
     $("depJPY").textContent = fmt(c.dep.JPY, "JPY");
-    $("depJPYsub").textContent = c.depPrin.JPY ? `gốc ${fmt(c.depPrin.JPY, "JPY")} · lãi đã sau thuế` : "";
+    $("depJPYsub").textContent = [c.depPrin.JPY && `gốc gửi ngân hàng ${fmt(c.depPrin.JPY, "JPY")} · lãi đã sau thuế`, c.cash.JPY && `tiền mặt ${fmt(c.cash.JPY, "JPY")}`].filter(Boolean).join(" · ");
     $("depVND").textContent = fmt(c.dep.VND, "VND");
-    $("depVNDsub").textContent = c.depPrin.VND ? `gốc ${short(c.depPrin.VND, "VND")}` : "";
+    $("depVNDsub").textContent = [c.depPrin.VND && `gốc gửi ngân hàng ${short(c.depPrin.VND, "VND")}`, c.cash.VND && `tiền mặt ${short(c.cash.VND, "VND")}`].filter(Boolean).join(" · ");
     const box = $("deps"); box.replaceChildren();
-    const deps = list("deposits").sort((a, b) => depValue(a).next - depValue(b).next);
-    $("depHint").textContent = deps.length ? `${deps.length} sổ · giá trị tính đến hôm nay` : "";
-    if (!deps.length) { const e = document.createElement("div"); e.className = "empty"; e.textContent = "Chưa có sổ tiết kiệm nào. Thêm sổ bên dưới để theo dõi tiền lãi và ngày đáo hạn."; box.append(e); }
+    const deps = list("deposits").sort((a, b) => (isCash(a) - isCash(b)) || (isCash(a) ? (a.start || "").localeCompare(b.start || "") : depValue(a).next - depValue(b).next));
+    const nCash = deps.filter(isCash).length, nBank = deps.length - nCash;
+    $("depHint").textContent = deps.length ? [nBank && `${nBank} sổ gửi ngân hàng`, nCash && `${nCash} khoản tiền mặt`].filter(Boolean).join(" · ") + " · tính đến hôm nay" : "";
+    if (!deps.length) { const e = document.createElement("div"); e.className = "empty"; e.textContent = "Chưa có khoản tiết kiệm nào. Thêm sổ gửi ngân hàng hoặc tiền mặt để dành ở bên dưới."; box.append(e); }
     deps.forEach(d => {
+      if (isCash(d)) { box.append(cashCard(d)); return; }
       const v = depValue(d);
       const el = document.createElement("div"); el.className = "dep";
       const top = document.createElement("div"); top.className = "top";
@@ -1210,6 +1329,55 @@ tr.clickable:hover td { background: var(--sunken) }
       acts.append(close, calcB, rm);
       el.append(top, facts, hint, acts); box.append(el);
     });
+  }
+
+  // Thẻ tiền mặt để dành: không tính lãi; bấm "Gửi ngân hàng" để chuyển (cả hoặc một phần) thành sổ tiết kiệm
+  function cashCard(d) {
+    const el = document.createElement("div"); el.className = "dep cash";
+    const top = document.createElement("div"); top.className = "top";
+    const nm = document.createElement("span"); nm.className = "bank"; nm.append(curTag(d.cur), " ", d.bank || "Tiền mặt");
+    const pill = document.createElement("span"); pill.className = "pill"; pill.textContent = "tiền mặt"; nm.append(pill);
+    const amt = document.createElement("span"); amt.className = "num"; amt.textContent = fmt(d.amount, d.cur);
+    top.append(nm, amt);
+    const hint = document.createElement("div"); hint.className = "hint";
+    hint.textContent = `Không tính lãi${d.start ? ` · để dành từ ${dmy(d.start)}` : ""}${d.cur !== state.view ? ` · ≈ ${short(conv(d.amount, d.cur, state.view))}` : ""}`;
+
+    const acts = document.createElement("div"); acts.className = "acts";
+    const goBank = document.createElement("button"); goBank.className = "small primary"; goBank.type = "button"; goBank.textContent = "Gửi ngân hàng";
+    const editB = document.createElement("button"); editB.className = "small"; editB.type = "button"; editB.textContent = "Sửa số tiền";
+    const close = document.createElement("button"); close.className = "small"; close.type = "button"; close.textContent = "Rút về tài khoản";
+    close.onclick = () => confirmClick(close, "Rút về tài khoản", () => settleDeposit(d.id));
+    const rm = document.createElement("button"); rm.className = "ghost"; rm.type = "button"; rm.textContent = "Xóa";
+    rm.onclick = () => confirmClick(rm, "Xóa", () => removeDeposit(d.id));
+    acts.append(goBank, editB, close, rm);
+
+    // sửa số tiền (thêm tiền vào hoặc bớt ra)
+    const tools = document.createElement("div"); tools.className = "tools"; tools.hidden = true;
+    const inp = document.createElement("input"); inp.inputMode = "decimal"; inp.value = d.cur === "JPY" ? group(d.amount) : short(d.amount, "VND").replace(" ₫", ""); inp.setAttribute("aria-label", "Số tiền mặt mới");
+    const ok = document.createElement("button"); ok.type = "button"; ok.textContent = "Lưu";
+    ok.onclick = () => setCashAmount(d.id, parseMoney(inp.value));
+    tools.append(inp, ok);
+    editB.onclick = () => { tools.hidden = !tools.hidden; if (!tools.hidden) inp.focus(); };
+
+    // chuyển sang gửi ngân hàng
+    const cv = document.createElement("form"); cv.className = "convert"; cv.hidden = true; cv.autocomplete = "off";
+    const field = (label, el, cls) => { const l = document.createElement("label"); l.className = "f" + (cls ? " " + cls : ""); l.append(label, el); return l; };
+    const bank = document.createElement("input"); bank.setAttribute("list", "bankList"); bank.placeholder = "vd: Vietcombank, SBI新生"; bank.required = true;
+    const amt2 = document.createElement("input"); amt2.inputMode = "decimal"; amt2.value = inp.value;
+    const rt = document.createElement("input"); rt.inputMode = "decimal"; rt.placeholder = "vd: 6"; rt.required = true;
+    const term = document.createElement("select"); term.append(...[...$("dTerm").options].map(o => opt(o.value, o.textContent))); term.value = "12";
+    const start = document.createElement("input"); start.type = "date"; start.value = ymd(today);
+    const mode = document.createElement("select"); mode.append(...[...$("dMode").options].map(o => opt(o.value, o.textContent)));
+    const go = document.createElement("button"); go.className = "primary"; go.type = "submit"; go.textContent = "Bắt đầu gửi";
+    const goWrap = document.createElement("div"); goWrap.style.display = "flex"; goWrap.style.alignItems = "end"; go.style.width = "100%"; goWrap.append(go);
+    const cvHint = document.createElement("div"); cvHint.className = "hint w-all";
+    cvHint.textContent = `Gửi hết hoặc một phần số tiền mặt. Phần còn lại vẫn giữ là tiền mặt. Lãi tính từ ngày bắt đầu gửi.`;
+    cv.append(field("Ngân hàng", bank, "w2"), field("Số tiền gửi", amt2), field("Lãi suất %/năm", rt), field("Kỳ hạn", term), field("Ngày bắt đầu gửi", start), field("Khi đáo hạn", mode, "w2"), goWrap, cvHint);
+    cv.onsubmit = e => { e.preventDefault(); cashToBank(d.id, { bank: bank.value.trim(), amount: parseMoney(amt2.value), rate: parsePct(rt.value), term: +term.value, start: start.value, mode: mode.value }); };
+    goBank.onclick = () => { cv.hidden = !cv.hidden; if (!cv.hidden) bank.focus(); };
+
+    el.append(top, hint, acts, tools, cv);
+    return el;
   }
 
   // ---------- Bảng tính lãi ----------
@@ -1395,9 +1563,30 @@ tr.clickable:hover td { background: var(--sunken) }
     const to = (d.from && M.accounts[d.from]) || defaultAcc(d.cur);
     if (to) bump(to.id, v.value, d.cur);
     repo.del("deposits", id); render();
-    toast(to ? `Đã tất toán ${fmt(v.value, d.cur)} về ${to.name}` : "Đã tất toán (không có tài khoản để cộng tiền)");
+    const verb = isCash(d) ? "Đã chuyển" : "Đã tất toán";
+    toast(to ? `${verb} ${fmt(v.value, d.cur)} về ${to.name}` : `${verb} (không có tài khoản để cộng tiền)`);
   }
   function removeDeposit(id) { if (isDemo()) return demoToast(); repo.del("deposits", id); render(); }
+  function setCashAmount(id, v) {
+    if (isDemo()) return demoToast();
+    const d = M.deposits[id]; if (!d) return;
+    if (!(v >= 0)) { toast("Số tiền chưa hợp lệ. Ví dụ: 15man, 20tr"); return; }
+    repo.put("deposits", { ...d, amount: v }); render(); toast(`Đã cập nhật tiền mặt ${d.bank || ""}: ${fmt(v, d.cur)}`);
+  }
+  // Mang tiền mặt đi gửi: tạo sổ tiết kiệm tính lãi từ ngày gửi, trừ phần đó khỏi tiền mặt
+  function cashToBank(id, f) {
+    if (isDemo()) return demoToast();
+    const c = M.deposits[id]; if (!c) return;
+    if (!f.bank) { toast("Nhập tên ngân hàng"); return; }
+    if (!(f.amount > 0) || f.amount > c.amount) { toast(`Số tiền gửi phải lớn hơn 0 và không quá ${fmt(c.amount, c.cur)}`); return; }
+    if (!(f.rate >= 0 && f.rate < 50)) { toast("Lãi suất chưa hợp lệ, ví dụ 6 hoặc 1,25"); return; }
+    const d = { id: uid(), bank: f.bank, cur: c.cur, amount: f.amount, rate: f.rate, term: f.term || 12, start: f.start || ymd(today), mode: f.mode || "roll" };
+    if (c.from) d.from = c.from;
+    repo.put("deposits", d);
+    if (f.amount >= c.amount) repo.del("deposits", id); else repo.put("deposits", { ...c, amount: c.amount - f.amount });
+    render();
+    toast(`Đã gửi ${fmt(f.amount, c.cur)} vào ${f.bank}, tính lãi từ ngày ${dmy(d.start)}`);
+  }
   const demoToast = () => toast("Đây là dữ liệu mẫu. Bấm “Bắt đầu với số liệu của tôi” để dùng thật.");
 
   document.querySelectorAll("#kindSeg button").forEach(b => b.onclick = () => {
@@ -1469,16 +1658,33 @@ tr.clickable:hover td { background: var(--sunken) }
   };
   $("depForm").onsubmit = async e => {
     e.preventDefault();
+    const cash = state.depKind === "cash";
     const amount = parseMoney($("dAmt").value), r = parsePct($("dRate").value);
-    if (!(amount > 0)) { toast("Số tiền gửi chưa hợp lệ"); return; }
-    if (!(r >= 0 && r < 50)) { toast("Lãi suất chưa hợp lệ, ví dụ 6 hoặc 1,25"); return; }
+    if (!(amount > 0)) { toast(cash ? "Số tiền chưa hợp lệ" : "Số tiền gửi chưa hợp lệ"); return; }
+    if (!cash && !(r >= 0 && r < 50)) { toast("Lãi suất chưa hợp lệ, ví dụ 6 hoặc 1,25"); return; }
     if (!await ensureReal()) return;
-    const d = { id: uid(), bank: $("dBank").value.trim(), cur: $("dCur").value, amount, rate: r, term: +$("dTerm").value, start: $("dStart").value || ymd(today), mode: $("dMode").value };
+    const d = cash
+      ? { id: uid(), kind: "cash", bank: $("dBank").value.trim() || "Tiền mặt", cur: $("dCur").value, amount, start: $("dStart").value || ymd(today) }
+      : { id: uid(), bank: $("dBank").value.trim(), cur: $("dCur").value, amount, rate: r, term: +$("dTerm").value, start: $("dStart").value || ymd(today), mode: $("dMode").value };
     if ($("dFrom").value) { d.from = $("dFrom").value; bump(d.from, -amount, d.cur); }
     repo.put("deposits", d);
-    render(); $("depForm").reset(); $("dStart").value = ymd(today); $("dTerm").value = "12";
-    toast(`Đã thêm sổ tiết kiệm ${d.bank}`);
+    render(); $("depForm").reset(); $("dStart").value = ymd(today); $("dTerm").value = "12"; setDepKind(state.depKind);
+    toast(cash ? `Đã thêm tiền mặt để dành ${fmt(amount, d.cur)}` : `Đã thêm sổ tiết kiệm ${d.bank}`);
   };
+  state.depKind = "bank";
+  function setDepKind(k) {
+    state.depKind = k; const cash = k === "cash";
+    document.querySelectorAll("#depSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === k));
+    document.querySelectorAll("#depForm .bankonly").forEach(l => l.hidden = cash);
+    $("dRate").required = !cash; $("dBank").required = !cash;
+    $("depCashHint").hidden = !cash;
+    $("dBankLabel").textContent = cash ? "Cất ở đâu (không bắt buộc)" : "Ngân hàng";
+    $("dBank").placeholder = cash ? "vd: Két ở nhà, phong bì Tết" : "vd: Vietcombank, SBI新生";
+    $("dAmtLabel").textContent = cash ? "Số tiền mặt" : "Số tiền gửi";
+    $("dStartLabel").textContent = cash ? "Để dành từ ngày" : "Ngày gửi";
+    $("depSubmit").textContent = cash ? "Thêm tiền mặt để dành" : "Thêm sổ tiết kiệm";
+  }
+  document.querySelectorAll("#depSeg button").forEach(b => b.onclick = () => setDepKind(b.dataset.k));
   function setGoalMin() { const v = mkey(today.getFullYear(), today.getMonth() + 1); $("gBy").min = v; if (!$("gBy").value) $("gBy").value = mkey(today.getFullYear() + (today.getMonth() + 6 > 11 ? 1 : 0), ((today.getMonth() + 6) % 12) + 1); }
   setGoalMin();
   const moveMonth = d => { state.m += d; if (state.m < 1) { state.m = 12; state.y--; } if (state.m > 12) { state.m = 1; state.y++; } D = demoData(); if (repo) repo.watchMonth(); render(); };
@@ -1780,16 +1986,200 @@ tr.clickable:hover td { background: var(--sunken) }
     render(); showTab("gift"); $("wName").focus();
   };
 
+  // ---------- Sổ nợ ----------
+  state.debtDir = "lend"; state.debtCur = "JPY"; state.debtFilter = "open";
+  const debtSign = d => d.dir === "lend" ? -1 : 1; // cho vay: tiền ra khỏi tài khoản; đi vay: tiền vào tài khoản
+  const leftItems = arr => arr.map(d => ({ cur: d.cur, amount: debtLeft(d) })).filter(x => x.amount > 0);
+  function debtSummary() {
+    const all = list("debts"); if (!all.length) return "Sổ nợ: chưa có.";
+    const open = all.filter(d => debtLeft(d) > 0);
+    const line = d => `${d.name} ${fmt(d.amount, d.cur)}, đã trả ${fmt(debtPaid(d), d.cur)}, còn ${fmt(debtLeft(d), d.cur)}${d.due ? `, hẹn trả ${d.due}` : ""}${d.note ? ` (${d.note})` : ""}`;
+    const lend = open.filter(d => d.dir === "lend"), borrow = open.filter(d => d.dir === "borrow");
+    return `Người khác còn nợ mình: ${lend.length ? lend.map(line).join("; ") : "không ai"}. Mình còn nợ: ${borrow.length ? borrow.map(line).join("; ") : "không"}.`;
+  }
+
+  function renderDebts() {
+    const all = list("debts"), V = state.view;
+    const open = all.filter(d => debtLeft(d) > 0);
+    const lend = open.filter(d => d.dir === "lend"), borrow = open.filter(d => d.dir === "borrow");
+    const sumV = arr => arr.reduce((a, d) => a + conv(debtLeft(d), d.cur, V), 0);
+    const lendV = sumV(lend), borrowV = sumV(borrow);
+    $("dbLend").textContent = fmt(lendV); $("dbLendSub").textContent = lend.length ? `${lend.length} người · ${mixedText(leftItems(lend))}` : "Không ai nợ";
+    $("dbBorrow").textContent = fmt(borrowV); $("dbBorrowSub").textContent = borrow.length ? `${borrow.length} khoản · ${mixedText(leftItems(borrow))}` : "Không nợ ai";
+    $("dbNet").textContent = fmt(lendV - borrowV);
+    $("dbNetSub").textContent = !open.length ? "Không còn khoản nợ nào" : lendV >= borrowV ? "Tiền người khác nợ nhiều hơn tiền mình nợ" : "Tiền mình nợ nhiều hơn tiền người khác nợ";
+    $("debtCount").textContent = all.length ? `${open.length} khoản còn nợ · ${all.length - open.length} đã trả xong` : "";
+    document.querySelectorAll("#debtSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.dir === state.debtDir));
+    document.querySelectorAll("#debtCurSeg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.cur === state.debtCur));
+    document.querySelectorAll("#debtFilter button").forEach(b => b.setAttribute("aria-pressed", b.dataset.f === state.debtFilter));
+    const lendMode = state.debtDir === "lend";
+    $("bNameLabel").textContent = lendMode ? "Ai vay mình" : "Mình vay ai";
+    $("bAmtLabel").textContent = lendMode ? "Số tiền cho vay" : "Số tiền đã vay";
+    $("bAccLabel").textContent = lendMode ? "Tiền lấy từ tài khoản" : "Tiền vào tài khoản";
+
+    const f = state.debtFilter;
+    const rows = all.filter(d => f === "open" ? debtLeft(d) > 0 : f === "done" ? debtLeft(d) <= 0 : d.dir === f)
+      .sort((a, b) => ((debtLeft(b) > 0) - (debtLeft(a) > 0)) || ((a.due || "9999") .localeCompare(b.due || "9999")) || (b.date || "").localeCompare(a.date || ""));
+    const box = $("debts"); box.replaceChildren();
+    if (!rows.length) {
+      const e = document.createElement("div"); e.className = "empty";
+      e.textContent = !all.length ? "Chưa có khoản nợ nào. Ghi khoản đầu tiên ở ô phía trên." : f === "open" ? "Không còn ai nợ và mình cũng không nợ ai." : "Không có khoản nào trong mục này.";
+      box.append(e);
+    }
+    rows.forEach(d => box.append(debtCard(d)));
+
+    $("debtNames").replaceChildren(...[...new Set(all.map(d => d.name))].map(n => opt(n, "")));
+    const prevAcc = $("bAcc").value;
+    $("bAcc").replaceChildren(opt("", "Không gắn tài khoản"), ...list("accounts").map(a => opt(a.id, `${a.name} (${SYM[a.cur]})`)));
+    if ([...$("bAcc").options].some(o => o.value === prevAcc)) $("bAcc").value = prevAcc;
+    updateDebtRoute();
+  }
+
+  function debtCard(d) {
+    const paid = debtPaid(d), left = debtLeft(d), lend = d.dir === "lend";
+    const el = document.createElement("div"); el.className = "debt";
+    const top = document.createElement("div"); top.className = "top";
+    const who = document.createElement("span"); who.className = "who";
+    const tag = document.createElement("span"); tag.className = "tag"; tag.textContent = lend ? "Họ nợ mình" : "Mình nợ";
+    who.append(curTag(d.cur), d.name, tag);
+    const right = document.createElement("span"); right.style.display = "flex"; right.style.gap = "8px"; right.style.alignItems = "baseline";
+    const chip = document.createElement("span"); chip.className = "status";
+    const days = d.due ? daysTo(d.due) : null;
+    if (left <= 0) { chip.classList.add("ok"); chip.textContent = "Đã trả xong"; }
+    else if (days != null && days < 0) { chip.classList.add("no"); chip.textContent = `Quá hẹn ${-days} ngày`; }
+    else if (days != null && days <= 7) { chip.classList.add("tight"); chip.textContent = days ? `Còn ${days} ngày` : "Hẹn hôm nay"; }
+    else { chip.classList.add("neutral"); chip.textContent = "Còn nợ"; }
+    const leftEl = document.createElement("span"); leftEl.className = "left " + (left > 0 ? d.dir : ""); leftEl.textContent = left > 0 ? fmt(left, d.cur) : "";
+    right.append(leftEl, chip); top.append(who, right);
+
+    const facts = document.createElement("div"); facts.className = "facts";
+    const fact = (k, v) => { const x = document.createElement("div"); const s = document.createElement("span"); s.textContent = k; x.append(s, v); return x; };
+    facts.append(fact(lend ? "Cho vay" : "Đã vay", fmt(d.amount, d.cur)), fact("Đã trả", fmt(paid, d.cur)), fact("Còn lại", fmt(left, d.cur)));
+    const m = document.createElement("div"); m.className = "meter";
+    const fl = document.createElement("div"); fl.className = "fill"; fl.style.width = Math.min(100, d.amount ? paid / d.amount * 100 : 0) + "%"; m.append(fl);
+    const hint = document.createElement("div"); hint.className = "hint";
+    const accN = d.acc && M.accounts[d.acc]?.name;
+    hint.textContent = [d.date && `Vay ngày ${dmy(d.date)}`, d.due && `hẹn trả ${dmy(d.due)}`, accN && `${lend ? "tiền từ" : "tiền vào"} ${accN}`, d.note].filter(Boolean).join(" · ");
+    el.append(top, facts, m);
+    if (hint.textContent) el.append(hint);
+
+    // các lần trả
+    const pays = [...(d.pays || [])].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    if (pays.length) {
+      const ul = document.createElement("ul");
+      pays.forEach(p => {
+        const li = document.createElement("li");
+        const t = document.createElement("span");
+        t.textContent = `${p.date ? dmy(p.date) : "—"} · ${lend ? "họ trả" : "mình trả"}${p.note ? " · " + p.note : ""}`;
+        const a = document.createElement("span"); a.className = "amt"; a.append(fmt(p.amount, d.cur));
+        const del = document.createElement("button"); del.className = "ghost small"; del.type = "button"; del.textContent = "Xóa";
+        del.setAttribute("aria-label", `Xóa lần trả ${fmt(p.amount, d.cur)} ngày ${p.date ? dmy(p.date) : ""}`);
+        del.onclick = () => confirmClick(del, "Xóa", () => removePay(d.id, p.id));
+        a.append(del); li.append(t, a); ul.append(li);
+      });
+      el.append(ul);
+    }
+
+    // ghi lần trả mới
+    if (left > 0) {
+      const fm = document.createElement("form"); fm.className = "payform"; fm.autocomplete = "off";
+      const field = (label, input, cls) => { const l = document.createElement("label"); l.className = "f" + (cls ? " " + cls : ""); l.append(label, input); return l; };
+      const amt = document.createElement("input"); amt.inputMode = "decimal"; amt.placeholder = "vd: " + (d.cur === "JPY" ? "2man" : "1tr");
+      const date = document.createElement("input"); date.type = "date"; date.value = ymd(today);
+      const note = document.createElement("input"); note.placeholder = "vd: chuyển khoản, đưa tiền mặt";
+      const ok = document.createElement("button"); ok.className = "primary"; ok.type = "submit"; ok.textContent = lend ? "Ghi họ trả" : "Ghi mình trả";
+      const all = document.createElement("button"); all.type = "button"; all.textContent = "Trả hết";
+      all.title = `Ghi trả nốt ${fmt(left, d.cur)}`;
+      fm.append(field("Số tiền trả", amt), field("Ngày trả", date), field("Ghi chú", note, "f-pnote"), ok, all);
+      fm.onsubmit = e => { e.preventDefault(); addPay(d.id, parseMoney(amt.value), date.value, note.value.trim()); };
+      all.onclick = () => confirmClick(all, "Trả hết", () => addPay(d.id, left, date.value, note.value.trim() || "Trả hết"));
+      el.append(fm);
+    }
+    const foot = document.createElement("div"); foot.className = "foot";
+    const rm = document.createElement("button"); rm.className = "ghost small"; rm.type = "button"; rm.textContent = "Xóa khoản nợ này";
+    rm.onclick = () => confirmClick(rm, "Xóa khoản nợ này", () => removeDebt(d.id));
+    foot.append(rm); el.append(foot);
+    return el;
+  }
+
+  function updateDebtRoute() {
+    const r = $("debtRoute"); r.replaceChildren();
+    const a = list("accounts").find(x => x.id === $("bAcc").value);
+    const name = $("bName").value.trim();
+    const open = list("debts").filter(d => d.name.toLowerCase() === name.toLowerCase() && debtLeft(d) > 0);
+    const parts = [];
+    if (open.length) parts.push(`${open[0].name} đang có ${open.length} khoản chưa trả xong (${mixedText(leftItems(open))}). Muốn ghi lần trả thì ghi ở khoản đó trong Sổ nợ bên dưới.`);
+    if (a) parts.push(`${state.debtDir === "lend" ? "Trừ từ" : "Cộng vào"} ${a.name}. Khi trả lại thì tiền tự ${state.debtDir === "lend" ? "cộng vào lại" : "trừ ra từ"} tài khoản này.`);
+    else parts.push("Không gắn tài khoản: số dư tài khoản không thay đổi. Khoản nợ không tính vào chi tiêu tháng.");
+    r.textContent = parts.join(" ");
+  }
+
+  async function addPay(id, amt, date, note) {
+    if (isDemo()) return demoToast();
+    const d = M.debts[id]; if (!d) return;
+    if (!(amt > 0)) { toast("Nhập số tiền trả. Ví dụ: 2man, 500k, 1tr"); return; }
+    const left = debtLeft(d);
+    if (amt > left) { toast(`Số tiền trả lớn hơn số còn nợ (${fmt(left, d.cur)})`); return; }
+    const p = { id: uid(), amount: amt, date: date || ymd(today) }; if (note) p.note = note;
+    if (state.me) { p.by = state.me; p.byName = state.meName; }
+    repo.put("debts", { ...d, pays: [...(d.pays || []), p] });
+    if (d.acc) bump(d.acc, -debtSign(d) * amt, d.cur);
+    render();
+    toast(amt >= left ? `${d.name} đã trả xong` : `Đã ghi trả ${fmt(amt, d.cur)}, còn ${fmt(left - amt, d.cur)}`);
+  }
+  function removePay(id, pid) {
+    if (isDemo()) return demoToast();
+    const d = M.debts[id]; if (!d) return;
+    const p = (d.pays || []).find(x => x.id === pid); if (!p) return;
+    repo.put("debts", { ...d, pays: d.pays.filter(x => x.id !== pid) });
+    if (d.acc) bump(d.acc, debtSign(d) * p.amount, d.cur);
+    render(); toast(`Đã xóa lần trả ${fmt(p.amount, d.cur)}`);
+  }
+  function removeDebt(id) {
+    if (isDemo()) return demoToast();
+    const d = M.debts[id]; if (!d) return;
+    // hoàn lại số dư tài khoản: bỏ khoản vay ban đầu và các lần trả
+    if (d.acc) bump(d.acc, -debtSign(d) * debtLeft(d), d.cur);
+    repo.del("debts", id); render(); toast("Đã xóa khoản nợ của " + d.name);
+  }
+
+  document.querySelectorAll("#debtSeg button").forEach(b => b.onclick = () => { state.debtDir = b.dataset.dir; renderDebts(); });
+  document.querySelectorAll("#debtCurSeg button").forEach(b => b.onclick = () => { state.debtCur = b.dataset.cur; renderDebts(); });
+  document.querySelectorAll("#debtFilter button").forEach(b => b.onclick = () => { state.debtFilter = b.dataset.f; renderDebts(); });
+  $("bName").oninput = updateDebtRoute;
+  $("bAcc").onchange = () => { const a = list("accounts").find(x => x.id === $("bAcc").value); if (a) state.debtCur = a.cur; renderDebts(); };
+  $("bDate").value = ymd(today);
+  $("debtForm").onsubmit = async e => {
+    e.preventDefault();
+    const amount = parseMoney($("bAmt").value), name = $("bName").value.trim();
+    if (!name) { toast("Nhập tên người"); return; }
+    if (!(amount > 0)) { toast("Số tiền chưa hợp lệ. Ví dụ: 5man, 50000, 500k, 10tr"); return; }
+    if (!await ensureReal()) return;
+    const d = { id: uid(), dir: state.debtDir, name, amount, cur: state.debtCur, date: $("bDate").value || ymd(today), pays: [], at: Date.now() };
+    if ($("bDue").value) d.due = $("bDue").value;
+    if ($("bNote").value.trim()) d.note = $("bNote").value.trim();
+    if (state.me) { d.by = state.me; d.byName = state.meName; }
+    const acc = $("bAcc").value;
+    if (acc) { d.acc = acc; bump(acc, debtSign(d) * amount, d.cur); }
+    repo.put("debts", d);
+    toast(d.dir === "lend" ? `Đã ghi: ${name} vay mình ${fmt(amount, d.cur)}` : `Đã ghi: mình vay ${name} ${fmt(amount, d.cur)}`);
+    $("bName").value = ""; $("bAmt").value = ""; $("bNote").value = ""; $("bDue").value = ""; $("bAcc").value = "";
+    state.debtFilter = "open"; render(); showTab("debt");
+  };
+
   // ---------- Tab ----------
   function showTab(t) {
-    const tabs = { main: ["tabMain", "pMain"], save: ["tabSave", "pSave"], gift: ["tabGift", "pGift"] };
+    const tabs = { main: ["tabMain", "pMain"], save: ["tabSave", "pSave"], gift: ["tabGift", "pGift"], debt: ["tabDebt", "pDebt"] };
     Object.entries(tabs).forEach(([k, [tb, pn]]) => { $(pn).hidden = k !== t; $(tb).setAttribute("aria-selected", k === t); });
+    const tb = $(tabs[t][0]), bar = tb.parentElement; bar.scrollLeft = Math.max(0, tb.offsetLeft - bar.offsetLeft - 16);
   }
   $("tabMain").onclick = () => showTab("main");
   $("tabSave").onclick = () => showTab("save");
   $("tabGift").onclick = () => showTab("gift");
+  $("tabDebt").onclick = () => showTab("debt");
   if (location.hash === "#tietkiem") showTab("save");
   if (location.hash === "#mungcuoi") showTab("gift");
+  if (location.hash === "#sono") showTab("debt");
 
   // ---------- Cố vấn AI (DeepSeek) ----------
   const CFG = window.SO_THU_CHI_CONFIG || {};
@@ -1809,8 +2199,9 @@ tr.clickable:hover td { background: var(--sunken) }
       `Thu nhập tháng: ${fmt(c.income)}. Giới hạn chi tiêu: ${st.limit ? fmt(c.limit) : "chưa đặt"}.`,
       `Đã chi: ${fmt(c.spent)}. Đã để dành trong tháng: ${fmt(c.saved)}. Còn lại: ${fmt(c.left)}.`,
       `Tài khoản: ` + (list("accounts").map(a => `${a.name} ${fmt(a.balance || 0, a.cur)}`).join("; ") || "chưa có") + `. Tổng bên Nhật ${fmt(c.tot.JPY, "JPY")}, bên Việt Nam ${fmt(c.tot.VND, "VND")}.`,
-      `Sổ tiết kiệm: ` + (list("deposits").map(d => `${d.bank} ${fmt(d.amount, d.cur)} lãi ${d.rate}%/năm kỳ hạn ${d.term} tháng, gửi ${d.start}, hiện ≈ ${fmt(depValue(d).value, d.cur)}`).join("; ") || "chưa có"),
+      `Tiết kiệm: ` + (list("deposits").map(d => isCash(d) ? `tiền mặt để dành (${d.bank || "tiền mặt"}) ${fmt(d.amount, d.cur)}, không tính lãi, từ ${d.start || "?"}` : `${d.bank} ${fmt(d.amount, d.cur)} lãi ${d.rate}%/năm kỳ hạn ${d.term} tháng, gửi ${d.start}, hiện ≈ ${fmt(depValue(d).value, d.cur)}`).join("; ") || "chưa có"),
       giftSummary(),
+      debtSummary(),
       `Chi theo danh mục: ` + (Object.entries(c.byCat).map(([k, v]) => `${k} ${fmt(v)}${c.catLimit(k) ? ` (hạn mức ${fmt(c.catLimit(k))})` : ""}`).join("; ") || "chưa có"),
       `Món đồ muốn mua: ` + (c.goals.map(g => `${g.name}: giá ${fmt(g.price, g.cur)}, đã để dành ${fmt(g.saved || 0, g.cur)}, hạn tháng ${g.by}, cần ${fmt(g.perMonth, g.cur)}/tháng`).join("; ") || "chưa có"),
       `Giao dịch gần đây: ` + (list("tx").sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30).map(t => `${t.date} ${{ out: "chi", in: "thu", save: "tiết kiệm", transfer: "chuyển tiền" }[t.kind]} ${fmt(t.amount, txCur(t))} [${t.cat}] ${t.note || ""}`).join(" | ") || "chưa có"),

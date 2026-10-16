@@ -1,6 +1,8 @@
 name = "so-thu-chi-ai"
 main = "src/index.js"
 compatibility_date = "2025-06-01"
+workers_dev = true
+preview_urls = false
 
 [vars]
 # Mã dự án Firebase (Project ID), xem trong Firebase console > Project settings
